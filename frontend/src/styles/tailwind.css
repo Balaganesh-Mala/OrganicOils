@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* tailwind.css or global css */
+.input {
+  @apply w-full px-4 py-3 rounded-xl border border-gray-300 
+         focus:outline-none focus:ring-2 
+         focus:ring-[#9a6b63]/40 focus:border-[#9a6b63]
+         text-gray-800 placeholder-gray-400;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
