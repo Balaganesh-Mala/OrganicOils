@@ -11,7 +11,7 @@ import {
 import Logo from "../../assets/images/logo.jpg";
 
 const navLinkBase = "flex items-center gap-1 pb-1 transition relative";
-
+//checking
 const navLinkActive =
   "text-black after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-[#8fbc8f]";
 
@@ -21,7 +21,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-[#faf9f7]/85 backdrop-blur-mdborder-b border-gray-200">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#faf9f7]/85 backdrop-blur-mdborder-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* LOGO */}
         <NavLink to="/" className="flex items-center gap-3">

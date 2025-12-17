@@ -1,123 +1,144 @@
-import { createContext, useContext, useState } from "react";
-import { coupons } from "../data/coupons";
-import { cartDummy } from "../data/cartDummy";
+import { createContext, useContext, useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
-
+import {
+  getCart,
+  addToCart,
+  updateCartItem,
+  removeCartItem,
+  validateCoupon,
+} from "../api/index.api";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // ✅ PRELOAD DUMMY CART (TEMP – remove when backend is ready)
-  const [cartItems, setCartItems] = useState(cartDummy.items);
+  const [cartItems, setCartItems] = useState([]);
   const [discount, setDiscount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [couponError, setCouponError] = useState(null);
+
+  /* ================= LOAD CART ================= */
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const res = await getCart();
+      setCartItems(res.data.cart?.items || []);
+    } catch (err) {
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      fetchCart();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   /* ================= CALCULATIONS ================= */
+  const subtotal = cartItems.reduce((sum, item) => {
+    const variant = item.product?.variants?.find(
+      (v) => v.sku === item.variantSku
+    );
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.variant.price * item.quantity,
-    0
-  );
+    if (!variant) return sum;
+
+    return sum + variant.price * item.quantity;
+  }, 0);
 
   const total = Math.max(subtotal - discount, 0);
 
-  /* ================= APPLY COUPON ================= */
-
-  const applyCoupon = (code) => {
-    setLoading(true);
-
-    setTimeout(() => {
-      const coupon = coupons.find(
-        (c) => c.code === code.toUpperCase()
+  /* ================= ADD TO CART ================= */
+  const addItem = async ({ productId, variantSku, quantity }) => {
+    try {
+      await addToCart({ productId, variantSku, quantity });
+      await fetchCart();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Failed to add item",
+        "error"
       );
+    }
+  };
 
-      if (!coupon || !coupon.isActive) {
-        alert("Invalid coupon code ❌");
-        setLoading(false);
-        return;
-      }
+  /* ================= UPDATE QUANTITY ================= */
+  const updateQuantity = async (variantSku, quantity) => {
+    if (quantity < 1) return;
 
-      if (subtotal < coupon.minCartValue) {
-        alert(`Minimum cart value ₹${coupon.minCartValue} required`);
-        setLoading(false);
-        return;
-      }
+    try {
+      await updateCartItem({ variantSku, quantity });
+      await fetchCart();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Unable to update quantity",
+        "error"
+      );
+    }
+  };
 
-      if (new Date(coupon.expiry) < new Date()) {
-        alert("Coupon expired ❌");
-        setLoading(false);
-        return;
-      }
+  /* ================= REMOVE ITEM ================= */
+  const removeFromCart = async (variantSku) => {
+    try {
+      await removeCartItem(variantSku);
+      await fetchCart();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Unable to remove item",
+        "error"
+      );
+    }
+  };
 
-      let discountAmount = 0;
+  /* ================= COUPON ================= */
+  const applyCoupon = async (code) => {
+    try {
+      setCouponError(null);
 
-      if (coupon.type === "PERCENT") {
-        discountAmount = (subtotal * coupon.value) / 100;
+      const res = await validateCoupon({
+        code,
+        cartTotal: subtotal,
+      });
 
-        if (coupon.maxDiscount) {
-          discountAmount = Math.min(
-            discountAmount,
-            coupon.maxDiscount
-          );
-        }
-      }
+      setDiscount(res.data.coupon.discount);
+      setAppliedCoupon(code.toUpperCase());
+    } catch (err) {
+      setDiscount(0);
+      setAppliedCoupon(null);
 
-      if (coupon.type === "FLAT") {
-        discountAmount = coupon.value;
-      }
-
-      discountAmount = Math.min(discountAmount, subtotal);
-
-      setDiscount(discountAmount);
-      setAppliedCoupon(coupon.code);
-      setLoading(false);
-    }, 800); // simulate API delay
+      setCouponError(err || "Invalid coupon");
+      console.log(err);
+    }
   };
 
   const removeCoupon = () => {
     setDiscount(0);
     setAppliedCoupon(null);
-  };
-
-  /* ================= UPDATE QUANTITY ================= */
-
-  const updateQuantity = (sku, quantity) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.variant.sku === sku
-          ? {
-              ...item,
-              quantity: Math.max(
-                1,
-                Math.min(quantity, item.variant.maxStock)
-              ),
-            }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (sku) => {
-    setCartItems((prev) =>
-      prev.filter((item) => item.variant.sku !== sku)
-    );
+    setCouponError(null);
   };
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
-        setCartItems,
         subtotal,
         discount,
         total,
-        appliedCoupon,
+        loading,
+        fetchCart,
+        addItem,
+        updateQuantity,
+        removeFromCart,
         applyCoupon,
         removeCoupon,
-        updateQuantity,
-        removeItem,
-        loading,
+        appliedCoupon,
+        couponError,
       }}
     >
       {children}

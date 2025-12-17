@@ -10,7 +10,7 @@ export default function MainLayout() {
     <>
       {/*<TopAnnouncementBar />*/}
       <Navbar />
-      <main className="pt-20">
+      <main className="pt-16 min-h-screen bg-[#faf8f6]">
         <Outlet />
       </main>
       <Footer />

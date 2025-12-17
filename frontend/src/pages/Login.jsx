@@ -1,23 +1,57 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { loginUser } from "../api/index.api";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", form);
-    alert("Login successful (dummy) ✅");
+
+    try {
+      setLoading(true);
+
+      const res = await loginUser({
+        email: form.email,
+        password: form.password,
+      });
+
+      // ✅ Save token
+      localStorage.setItem("token", res.data.token);
+
+      Swal.fire({
+        title: "Welcome Back 👋",
+        text: "Login successful",
+        icon: "success",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      navigate("/"); // redirect to home
+    } catch (error) {
+      Swal.fire(
+        "Login Failed ❌",
+        error?.response?.data?.message || "Invalid credentials",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className="min-h-screen bg-[#faf8f6] flex items-center justify-center px-6">
+    <section className="min-h-screen bg-[#f6faf6] flex items-center justify-center px-6">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -48,7 +82,7 @@ export default function Login() {
                 placeholder="you@example.com"
                 className="w-full pl-11 pr-4 py-3 rounded-xl border
                            focus:outline-none focus:ring-2
-                           focus:ring-[#9a6b63]/40"
+                           focus:ring-[#8fbc8f]/40"
               />
             </div>
           </div>
@@ -70,7 +104,7 @@ export default function Login() {
                 placeholder="Enter password"
                 className="w-full pl-11 pr-11 py-3 rounded-xl border
                            focus:outline-none focus:ring-2
-                           focus:ring-[#9a6b63]/40"
+                           focus:ring-[#8fbc8f]/40"
               />
               <button
                 type="button"
@@ -85,10 +119,16 @@ export default function Login() {
           {/* SUBMIT */}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#9a6b63]
-                       text-white font-medium hover:bg-[#875a53] transition"
+            disabled={loading}
+            className={`w-full py-3 rounded-xl
+              ${
+                loading
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-[#8fbc8f] hover:bg-[#7daa7d]"
+              }
+              text-white font-medium transition`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -97,7 +137,7 @@ export default function Login() {
           Don’t have an account?{" "}
           <Link
             to="/register"
-            className="text-[#9a6b63] font-medium hover:underline"
+            className="text-[#8fbc8f] font-medium hover:underline"
           >
             Register
           </Link>

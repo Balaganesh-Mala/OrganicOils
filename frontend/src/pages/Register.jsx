@@ -6,32 +6,69 @@ import {
   FaLock,
   FaEye,
   FaEyeSlash,
+  FaPhoneAlt,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { registerUser } from "../api/index.api";
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
-    name: "",
+    fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match ❌");
+      Swal.fire("Error", "Passwords do not match ❌", "error");
       return;
     }
 
-    console.log("Register Data:", form);
-    alert("Account created successfully (dummy) ✅");
+    try {
+      setLoading(true);
+
+      const res = await registerUser({
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+
+      // ✅ Save token
+      localStorage.setItem("token", res.data.token);
+
+      Swal.fire({
+        title: "Success 🎉",
+        text: "Account created successfully",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      navigate("/");
+    } catch (error) {
+      Swal.fire(
+        "Registration Failed ❌",
+        error?.response?.data?.message || "Something went wrong",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className="min-h-screen bg-[#faf8f6] flex items-center justify-center px-6">
+    <section className="min-h-screen bg-[#f6faf6] flex items-center justify-center px-6">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,7 +82,7 @@ export default function Register() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* NAME */}
+          {/* FULL NAME */}
           <div>
             <label className="text-sm text-gray-600 mb-1 block">
               Full Name
@@ -54,14 +91,14 @@ export default function Register() {
               <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 required
-                value={form.name}
+                value={form.fullName}
                 onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
+                  setForm({ ...form, fullName: e.target.value })
                 }
                 placeholder="Your name"
                 className="w-full pl-11 pr-4 py-3 rounded-xl border
                            focus:outline-none focus:ring-2
-                           focus:ring-[#9a6b63]/40"
+                           focus:ring-[#8fbc8f]/40"
               />
             </div>
           </div>
@@ -83,7 +120,29 @@ export default function Register() {
                 placeholder="you@example.com"
                 className="w-full pl-11 pr-4 py-3 rounded-xl border
                            focus:outline-none focus:ring-2
-                           focus:ring-[#9a6b63]/40"
+                           focus:ring-[#8fbc8f]/40"
+              />
+            </div>
+          </div>
+
+          {/* PHONE */}
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">
+              Phone Number
+            </label>
+            <div className="relative">
+              <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="tel"
+                required
+                value={form.phone}
+                onChange={(e) =>
+                  setForm({ ...form, phone: e.target.value })
+                }
+                placeholder="10-digit mobile number"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border
+                           focus:outline-none focus:ring-2
+                           focus:ring-[#8fbc8f]/40"
               />
             </div>
           </div>
@@ -105,7 +164,7 @@ export default function Register() {
                 placeholder="Create password"
                 className="w-full pl-11 pr-11 py-3 rounded-xl border
                            focus:outline-none focus:ring-2
-                           focus:ring-[#9a6b63]/40"
+                           focus:ring-[#8fbc8f]/40"
               />
               <button
                 type="button"
@@ -132,17 +191,23 @@ export default function Register() {
               placeholder="Confirm password"
               className="w-full px-4 py-3 rounded-xl border
                          focus:outline-none focus:ring-2
-                         focus:ring-[#9a6b63]/40"
+                         focus:ring-[#8fbc8f]/40"
             />
           </div>
 
           {/* SUBMIT */}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-[#9a6b63]
-                       text-white font-medium hover:bg-[#875a53] transition"
+            disabled={loading}
+            className={`w-full py-3 rounded-xl
+              ${
+                loading
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-[#8fbc8f] hover:bg-[#7daa7d]"
+              }
+              text-white font-medium transition`}
           >
-            Register
+            {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 
@@ -151,7 +216,7 @@ export default function Register() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-[#9a6b63] font-medium hover:underline"
+            className="text-[#8fbc8f] font-medium hover:underline"
           >
             Login
           </Link>
