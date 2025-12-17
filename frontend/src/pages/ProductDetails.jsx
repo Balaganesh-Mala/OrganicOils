@@ -13,7 +13,6 @@ import { addRecentlyViewed } from "../utils/recentlyViewed";
 import { FaStar, FaLeaf, FaRegStar, FaArrowLeft } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 
-
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,20 +100,20 @@ export default function ProductDetails() {
 
   /* ================= BUY NOW ================= */
   const handleBuyNow = async () => {
-  if (!localStorage.getItem("token")) return requireLogin();
+    if (!localStorage.getItem("token")) return requireLogin();
 
-  try {
-    await addItem({
-      productId: product._id,
-      variantSku: variant.sku,
-      quantity,
-    });
+    try {
+      await addItem({
+        productId: product._id,
+        variantSku: variant.sku,
+        quantity,
+      });
 
-    navigate("/checkout");
-  } catch (err) {
-    Swal.fire("Error", "Unable to proceed", "error");
-  }
-};
+      navigate("/checkout");
+    } catch (err) {
+      Swal.fire("Error", "Unable to proceed", "error");
+    }
+  };
   /* ================= LOADING ================= */
   if (loading) {
     return (
@@ -202,20 +201,38 @@ export default function ProductDetails() {
             </div>
 
             {/* BADGES + RATING */}
-            <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              {/* Organic Badge */}
               {product?.isOrganic && (
-                <span className="inline-flex items-center gap-1 text-green-700">
+                <span className="inline-flex items-center gap-1 text-green-700 font-medium">
                   <FaLeaf size={14} /> Organic
                 </span>
               )}
 
+              {/* Cold Pressed Badge */}
               {product?.coldPressed && (
-                <span className="text-gray-600">| Cold Pressed</span>
+                <span className="font-medium">Cold Pressed</span>
               )}
 
-              <span className="flex items-center gap-1 text-yellow-500">
-                <FaStar />
-                <span className="text-gray-800 font-medium">
+              {/* Divider (only if any badge exists) */}
+              {(product?.isOrganic || product?.coldPressed) && (
+                <span className="text-gray-400">|</span>
+              )}
+
+              {/* Rating */}
+              <span className="flex items-center gap-1">
+                {[...Array(5)].map((_, index) => (
+                  <FaStar
+                    key={index}
+                    className={
+                      index < Math.floor(product?.ratings || 0)
+                        ? "text-yellow-500"
+                        : "text-gray-300"
+                    }
+                  />
+                ))}
+
+                <span className="text-gray-800 font-medium ml-1">
                   {product?.ratings || 0}
                 </span>
                 <span className="text-gray-500">

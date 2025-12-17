@@ -1,131 +1,130 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user.model.js";
 
-//
-// 🧍‍♂️ Get all users (Admin only)
-//
-export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password");
-  res.status(200).json({ success: true, users });
-});
-
-//
-// 👤 Get logged-in user profile
-//
+/* ================= GET MY PROFILE ================= */
 export const getMyProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password");
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-  res.status(200).json({ success: true, user });
+  const user = await User.findById(req.user.id);
+
+  res.json({
+    success: true,
+    user,
+  });
 });
 
-//
-// ✏️ Update user profile
-//
-export const updateUserProfile = asyncHandler(async (req, res) => {
+/* ================= UPDATE PROFILE ================= */
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { fullName, phone, avatar } = req.body;
+
   const user = await User.findById(req.user.id);
   if (!user) {
     res.status(404);
     throw new Error("User not found");
   }
 
-  user.name = req.body.name || user.name;
-  user.phone = req.body.phone || user.phone;
+  if (fullName) user.fullName = fullName;
+  if (phone) user.phone = phone;
+  if (avatar) user.avatar = avatar;
 
-  const updatedUser = await user.save();
+  await user.save();
 
-  res.status(200).json({
+  res.json({
     success: true,
     message: "Profile updated successfully",
-    user: {
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      phone: updatedUser.phone,
-    },
+    user,
   });
 });
 
-//
-// 💖 Add to wishlist
-//
-export const addToWishlist = asyncHandler(async (req, res) => {
-  const { productId } = req.body;
-  if (!productId) {
-    res.status(400);
-    throw new Error("Product ID required");
-  }
-
-  const user = await User.findById(req.user.id);
-  const alreadyExists = user.wishlist.some(
-    (id) => id.toString() === productId
-  );
-
-  if (alreadyExists) {
-    res.status(400);
-    throw new Error("Product already in wishlist");
-  }
-
-  user.wishlist.push(productId);
-  await user.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Added to wishlist",
-    wishlist: user.wishlist,
-  });
-});
-
-//
-// 💔 Remove from wishlist
-//
-export const removeFromWishlist = asyncHandler(async (req, res) => {
-  const { productId } = req.body;
+/* ================= ADD ADDRESS ================= */
+export const addAddress = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
 
-  user.wishlist = user.wishlist.filter(
-    (id) => id.toString() !== productId
-  );
+  const address = req.body;
+
+  if (address.isDefault) {
+    user.addresses.forEach((addr) => (addr.isDefault = false));
+  }
+
+  user.addresses.push(address);
   await user.save();
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
-    message: "Removed from wishlist",
-    wishlist: user.wishlist,
+    message: "Address added",
+    addresses: user.addresses,
   });
 });
 
-//
-// 🏠 Add or update address
-//
+/* ================= UPDATE ADDRESS ================= */
 export const updateAddress = asyncHandler(async (req, res) => {
-  const { street, city, state, pincode, phone } = req.body;
-
+  const { addressId } = req.params;
   const user = await User.findById(req.user.id);
-  if (!user) {
+
+  const address = user.addresses.id(addressId);
+  if (!address) {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error("Address not found");
   }
 
-  // If address array is empty, push new one; else update first
-  if (user.addresses.length === 0) {
-    user.addresses.push({ street, city, state, pincode, phone });
-  } else {
-    const addr = user.addresses[0];
-    addr.street = street || addr.street;
-    addr.city = city || addr.city;
-    addr.state = state || addr.state;
-    addr.pincode = pincode || addr.pincode;
-    addr.phone = phone || addr.phone;
+  Object.assign(address, req.body);
+
+  if (req.body.isDefault) {
+    user.addresses.forEach((addr) => {
+      if (addr._id.toString() !== addressId) {
+        addr.isDefault = false;
+      }
+    });
   }
 
   await user.save();
 
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "Address updated successfully",
-    address: user.addresses[0],
+    message: "Address updated",
+    addresses: user.addresses,
   });
 });
+
+/* ================= DELETE ADDRESS ================= */
+export const deleteAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const user = await User.findById(req.user.id);
+
+  user.addresses = user.addresses.filter(
+    (addr) => addr._id.toString() !== addressId
+  );
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Address removed",
+    addresses: user.addresses,
+  });
+});
+
+/* ================= SET DEFAULT ADDRESS ================= */
+export const setDefaultAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const user = await User.findById(req.user.id);
+
+  user.addresses.forEach((addr) => {
+    addr.isDefault = addr._id.toString() === addressId;
+  });
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: "Default address set",
+    addresses: user.addresses,
+  });
+});
+
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find();
+  res.json({
+    success: true,
+    users,
+  });
+});
+export { getAllUsers };

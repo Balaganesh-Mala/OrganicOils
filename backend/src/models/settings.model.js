@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
 
-const logoSchema = new mongoose.Schema({
-  public_id: String,
-  url: String,
-}, { _id: false });
+const logoSchema = new mongoose.Schema(
+  {
+    public_id: String,
+    url: String,
+  },
+  { _id: false }
+);
 
 const settingsSchema = new mongoose.Schema(
   {
-    storeName: { type: String, default: "Hunger Bites" },
-    logo: { type: logoSchema, default: null },  // ✅ single logo object
+    storeName: { type: String, default: "Pristine Organic Oils" },
+    logo: { type: logoSchema, default: null },
     supportEmail: { type: String, default: "" },
     supportPhone: { type: String, default: "" },
     address: { type: String, default: "" },

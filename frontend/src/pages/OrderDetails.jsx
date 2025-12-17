@@ -84,9 +84,9 @@ console.log(order);
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 border shadow-sm"
+          className="bg-white rounded-3xl p-6 border shadow-sm "
         >
-          <div className="flex flex-wrap justify-between gap-4">
+          <div className="flex flex-wrap justify-between gap-4 items-center">
             <div>
               <p className="text-sm text-gray-500">Order ID</p>
               <h1 className="text-xl font-semibold text-gray-900">

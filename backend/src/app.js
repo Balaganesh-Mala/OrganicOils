@@ -14,6 +14,9 @@ import couponRoutes from "./routes/coupon.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import videoRoutes from "./routes/video.routes.js";
+
 
 dotenv.config();
 
@@ -45,6 +48,8 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/videos", videoRoutes);
 
 // ✅ Test Route
 app.get("/", (req, res) => {

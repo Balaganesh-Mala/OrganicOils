@@ -1,6 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 
-
 import MainLayout from "./layout/MainLayout";
 import Home from "./pages/Home";
 import ProductPage from "./pages/ProductPage";
@@ -12,7 +11,7 @@ import OrderDetails from "./pages/OrderDetails";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -27,6 +26,7 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

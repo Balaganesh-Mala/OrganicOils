@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
 import {
-  FaUser,
   FaEnvelope,
   FaPhone,
   FaMapMarkerAlt,
@@ -9,43 +10,157 @@ import {
   FaCheckCircle,
   FaClock,
   FaTimesCircle,
-  FaSignOutAlt,
   FaEdit,
+  FaPlus,
+  FaTrash,
+  FaStar,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import { profileDummy } from "../data/profileDummy";
+import Swal from "sweetalert2";
+
+import {
+  getMyProfile,
+  updateProfile,
+  getMyOrders,
+  deleteAddress,
+  setDefaultAddress,
+} from "../api/index.api";
+
+import AddressForm from "../components/profile/AddressForm";
 
 export default function Profile() {
-  const [user, setUser] = useState(profileDummy);
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const navigate = useNavigate();
+
+  /* ================= LOAD DATA ================= */
+  const loadData = async () => {
+    try {
+      const [profileRes, ordersRes] = await Promise.all([
+        getMyProfile(),
+        getMyOrders(),
+      ]);
+
+      setUser(profileRes.data.user);
+      setOrders(ordersRes.data.orders || []);
+    } catch {
+      Swal.fire("Error", "Failed to load profile", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    loadData();
+  }, []);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Logout",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    });
+  };
+
+  /* ================= PROFILE SAVE ================= */
+  const handleSaveProfile = async () => {
+    try {
+      const res = await updateProfile({
+        fullName: user.fullName,
+        phone: user.phone,
+      });
+      setUser(res.data.user);
+      setEditMode(false);
+      Swal.fire("Success", "Profile updated", "success");
+    } catch {
+      Swal.fire("Error", "Profile update failed", "error");
+    }
+  };
+
+  /* ================= ORDER STATS ================= */
+  const stats = {
+    totalOrders: orders.length,
+    delivered: orders.filter((o) => o.status === "DELIVERED").length,
+    pending: orders.filter(
+      (o) => o.status === "CONFIRMED" || o.status === "SHIPPED"
+    ).length,
+    cancelled: orders.filter((o) => o.status === "CANCELLED").length,
+  };
+
+  /* ================= ADDRESS HANDLERS ================= */
+  const openAddAddress = () => {
+    setEditingAddress(null);
+    setShowAddressModal(true);
+  };
+
+  const openEditAddress = (addr) => {
+    setEditingAddress(addr);
+    setShowAddressModal(true);
+  };
+
+  const removeAddress = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Delete address?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    await deleteAddress(id);
+    await loadData();
+    Swal.fire("Deleted", "Address removed", "success");
+  };
+
+  const makeDefault = async (id) => {
+    await setDefaultAddress(id);
+    await loadData();
+    Swal.fire("Success", "Default address updated", "success");
+  };
+
+  if (loading || !user) return null;
 
   return (
-    <section className="bg-[#faf8f6] min-h-screen pt-24 pb-16">
-      <div className="max-w-6xl mx-auto px-6 space-y-12">
-
-        {/* ================= PROFILE HEADER ================= */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 border flex flex-col sm:flex-row items-center gap-6"
-        >
+    <section className="bg-[#faf8f6] min-h-screen pt-8 pb-16">
+      <div className="max-w-6xl mx-auto px-6 space-y-5">
+        {/* PROFILE HEADER */}
+        <motion.div className="bg-white rounded-3xl p-6 border flex gap-6 align-centerflex justify-between items-center mb-6">
           <img
             src={user.avatar}
             alt="Profile"
             className="w-24 h-24 rounded-full border object-cover"
           />
 
-          <div className="flex-1 w-full">
+          <div className="flex-1">
             {!editMode ? (
               <>
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {user.fullName}
-                </h1>
-
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
-                  <span className="flex items-center gap-2">
+                <h1 className="text-2xl font-semibold">{user.fullName}</h1>
+                <div className="flex gap-4 text-sm text-gray-600 mt-2">
+                  <span className="flex gap-2">
                     <FaEnvelope /> {user.email}
                   </span>
-                  <span className="flex items-center gap-2">
+                  <span className="flex gap-2">
                     <FaPhone /> {user.phone}
                   </span>
                 </div>
@@ -62,86 +177,169 @@ export default function Profile() {
                 <input
                   className="input"
                   value={user.phone}
-                  onChange={(e) =>
-                    setUser({ ...user, phone: e.target.value })
-                  }
+                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
                 />
               </div>
             )}
-
-            <p className="text-xs text-gray-400 mt-2">
-              Member since {new Date(user.createdAt).toDateString()}
-            </p>
           </div>
 
           <button
-            onClick={() => setEditMode(!editMode)}
-            className="px-5 py-2 rounded-xl bg-[#9a6b63] text-white hover:bg-[#875a53] transition flex items-center gap-2"
+            onClick={() => (editMode ? handleSaveProfile() : setEditMode(true))}
+            className="px-5 py-2 bg-[#8fbc8f] text-white rounded-xl flex gap-2"
           >
-            <FaEdit />
-            {editMode ? "Save" : "Edit"}
+            <FaEdit /> {editMode ? "Save" : "Edit"}
           </button>
         </motion.div>
 
-        {/* ================= ORDER STATS ================= */}
+        {/* ORDER STATS */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard icon={<FaBox />} label="Total Orders" value={user.stats.totalOrders} />
-          <StatCard icon={<FaCheckCircle />} label="Delivered" value={user.stats.delivered} color="green" />
-          <StatCard icon={<FaClock />} label="Pending" value={user.stats.pending} color="yellow" />
-          <StatCard icon={<FaTimesCircle />} label="Cancelled" value={user.stats.cancelled} color="red" />
+          <StatCard
+            icon={<FaBox />}
+            label="Total Orders"
+            value={stats.totalOrders}
+          />
+          <StatCard
+            icon={<FaCheckCircle />}
+            label="Delivered"
+            value={stats.delivered}
+            color="green"
+          />
+          <StatCard
+            icon={<FaClock />}
+            label="Pending"
+            value={stats.pending}
+            color="yellow"
+          />
+          <StatCard
+            icon={<FaTimesCircle />}
+            label="Cancelled"
+            value={stats.cancelled}
+            color="red"
+          />
         </div>
 
-        {/* ================= ADDRESSES ================= */}
-        <div className="bg-white rounded-3xl p-6 border">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Saved Addresses
-          </h2>
+        {/* ADDRESSES */}
+        <div className="bg-white rounded-3xl p-6 border shadow-sm">
+          {/* HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Saved Addresses
+            </h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {user.addresses.map((addr) => (
+            <button
+              onClick={openAddAddress}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                 bg-[#8fbc8f] text-white text-sm font-medium
+                 hover:bg-[#7aa97a] transition"
+            >
+              <FaPlus className="text-sm" />
+              Add New Address
+            </button>
+          </div>
+
+          {/* ADDRESS LIST */}
+          <div className="grid lg:grid-cols-2 gap-5">
+            {user.addresses?.map((addr) => (
               <div
                 key={addr._id}
-                className={`rounded-2xl p-4 border ${
-                  addr.isDefault
-                    ? "border-[#9a6b63] bg-[#9a6b63]/5"
-                    : "border-gray-200"
-                }`}
+                className={`relative rounded-2xl border p-5 transition
+          ${
+            addr.isDefault
+              ? "border-[#8fbc8f] bg-[#8fbc8f]/10"
+              : "border-gray-200 hover:border-gray-300"
+          }`}
               >
-                <div className="flex justify-between items-center mb-2">
-                  <p className="font-medium text-gray-900">{addr.fullName}</p>
-                  {addr.isDefault && (
-                    <span className="text-xs bg-[#9a6b63] text-white px-2 py-1 rounded-full">
-                      Default
-                    </span>
+                {/* DEFAULT BADGE */}
+                {addr.isDefault && (
+                  <span
+                    className="absolute top-4 right-4 text-xs font-semibold
+                           bg-[#8fbc8f] text-white px-3 py-1 rounded-full"
+                  >
+                    Default
+                  </span>
+                )}
+
+                {/* NAME */}
+                <p className="font-semibold text-gray-900 text-base">
+                  {addr.fullName}
+                </p>
+
+                {/* ADDRESS */}
+                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2 leading-relaxed">
+                  <FaMapMarkerAlt className="mt-1 text-gray-400" />
+                  <span>
+                    {addr.street}, {addr.city}, {addr.state} – {addr.pincode}
+                  </span>
+                </p>
+
+                {/* PHONE */}
+                <p className="mt-2 text-sm text-gray-600 flex items-center gap-2">
+                  <FaPhone className="text-gray-400" />
+                  {addr.phone}
+                </p>
+
+                {/* ACTIONS */}
+                <div className="mt-5 flex flex-wrap gap-4 text-sm font-medium">
+                  <button
+                    onClick={() => openEditAddress(addr)}
+                    className="text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+
+                  <button
+                    onClick={() => removeAddress(addr._id)}
+                    className="text-red-600 hover:underline flex items-center gap-1"
+                  >
+                    <FaTrash /> Delete
+                  </button>
+
+                  {!addr.isDefault && (
+                    <button
+                      onClick={() => makeDefault(addr._id)}
+                      className="text-green-700 hover:underline flex items-center gap-1"
+                    >
+                      <FaStar /> Set as Default
+                    </button>
                   )}
                 </div>
-
-                <p className="text-sm text-gray-600 flex items-start gap-2">
-                  <FaMapMarkerAlt className="mt-1" />
-                  {addr.street}, {addr.city}, {addr.state} – {addr.pincode}
-                </p>
-
-                <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-                  <FaPhone /> {addr.phone}
-                </p>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* ================= ACCOUNT ACTIONS ================= */}
-        <div className="bg-white rounded-3xl p-6 border">
-          <button className="flex items-center gap-3 text-red-600 hover:underline">
-            <FaSignOutAlt /> Logout
+          {/* EMPTY STATE */}
+          {!user.addresses?.length && (
+            <div className="text-center py-10 text-gray-500 text-sm">
+              No addresses saved yet.
+            </div>
+          )}
+        </div>
+        {/* ================= LOGOUT ================= */}
+        <div className="bg-white rounded-3xl p-6 border shadow-sm">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 text-red-600 font-medium
+               hover:text-red-700 transition"
+          >
+            <FaSignOutAlt className="text-lg" />
+            Logout
           </button>
         </div>
-
       </div>
+
+      {/* ADDRESS MODAL */}
+      {showAddressModal && (
+        <AddressForm
+          editingAddress={editingAddress}
+          onClose={() => setShowAddressModal(false)}
+          onSuccess={loadData}
+        />
+      )}
     </section>
   );
 }
 
-/* ================= STAT CARD ================= */
+/* STAT CARD */
 function StatCard({ icon, label, value, color = "gray" }) {
   const colors = {
     gray: "text-gray-700",
@@ -151,11 +349,11 @@ function StatCard({ icon, label, value, color = "gray" }) {
   };
 
   return (
-    <div className="bg-white border rounded-2xl p-5 flex items-center gap-4">
+    <div className="bg-white border rounded-2xl p-5 flex gap-4">
       <div className={`text-2xl ${colors[color]}`}>{icon}</div>
       <div>
         <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-xl font-semibold text-gray-900">{value}</p>
+        <p className="text-xl font-semibold">{value}</p>
       </div>
     </div>
   );

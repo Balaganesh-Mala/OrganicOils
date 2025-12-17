@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   FiMenu,
@@ -8,30 +8,72 @@ import {
   FiPackage,
   FiHome,
 } from "react-icons/fi";
-import Logo from "../../assets/images/logo.jpg";
+
+import { getPublicSettings, getCart } from "../../api/index.api";
 
 const navLinkBase = "flex items-center gap-1 pb-1 transition relative";
-//checking
 const navLinkActive =
   "text-black after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-[#8fbc8f]";
-
 const navLinkInactive = "text-gray-700 hover:text-black";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [logo, setLogo] = useState(null);
+  const [storeName, setStoreName] = useState("Store");
+  const [cartCount, setCartCount] = useState(0);
+
+  /* ================= LOAD SETTINGS ================= */
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await getPublicSettings();
+        const settings = res.data.settings;
+
+        setStoreName(settings?.storeName || "Store");
+        setLogo(settings?.logo?.url || null);
+      } catch (err) {
+        console.error("Settings load failed", err);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  /* ================= LOAD CART COUNT ================= */
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        const res = await getCart();
+        const items = res.data.cart?.items || [];
+
+        const totalQty = items.reduce((sum, item) => sum + (item.qty || 1), 0);
+
+        setCartCount(totalQty);
+      } catch (err) {
+        setCartCount(0);
+      }
+    };
+
+    loadCart();
+  }, []);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-[#faf9f7]/85 backdrop-blur-mdborder-b border-gray-200 shadow-sm">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#faf9f7]/85 backdrop-blur-md border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* LOGO */}
         <NavLink to="/" className="flex items-center gap-3">
-          <img
-            src={Logo}
-            alt="Pristine Organic Oils"
-            className="w-10 h-10 object-contain"
-          />
+          {logo ? (
+            <img
+              src={logo}
+              alt={storeName}
+              className="w-10 h-10 object-contain"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-gray-200 rounded" />
+          )}
+
           <span className="text-lg font-semibold text-gray-900">
-            Pristine Organic Oils
+            {storeName}
           </span>
         </NavLink>
 
@@ -68,16 +110,15 @@ export default function Navbar() {
           {/* CART */}
           <NavLink
             to="/cart"
-            className={({ isActive }) =>
-              `relative ${
-                isActive ? "text-black" : "text-gray-700 hover:text-black"
-              }`
-            }
+            className="relative text-gray-700 hover:text-black"
           >
             <FiShoppingCart size={20} />
-            <span className="absolute -top-2 -right-2 bg-[#8fbc8f] text-white text-xs rounded-full px-1.5">
-              0
-            </span>
+
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-[#8fbc8f] text-white text-xs rounded-full px-1.5">
+                {cartCount}
+              </span>
+            )}
           </NavLink>
 
           {/* PROFILE */}
@@ -101,60 +142,114 @@ export default function Navbar() {
       </div>
 
       {/* MOBILE MENU */}
+      {/* MOBILE MENU */}
       {open && (
         <div className="md:hidden bg-white border-t">
-          <div className="px-6 py-4 flex flex-col gap-4">
+          <div className="px-6 py-4 flex flex-col gap-2">
+            {/* HOME */}
             <NavLink
               to="/"
               end
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                isActive
-                  ? "text-black font-medium border-l-4 border-[#8fbc8f] pl-3"
-                  : "text-gray-700"
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+           ${
+             isActive
+               ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+               : "text-gray-700 hover:bg-gray-100"
+           }`
               }
             >
-              <FiHome /> Home
+              <FiHome size={18} />
+              <span className="relative">
+                Home
+                {/* underline */}
+                <span
+                  className={`absolute left-0 -bottom-0.5 h-[2px] bg-[#8fbc8f] transition-all
+              ${window.location.pathname === "/" ? "w-full" : "w-0"}
+            `}
+                />
+              </span>
             </NavLink>
 
+            {/* PRODUCTS */}
             <NavLink
               to="/products"
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                isActive
-                  ? "text-black font-medium border-l-4 border-[#8fbc8f] pl-3"
-                  : "text-gray-700"
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+           ${
+             isActive
+               ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+               : "text-gray-700 hover:bg-gray-100"
+           }`
               }
             >
-              <FiPackage /> Products
+              <FiPackage size={18} />
+              <span className="relative">
+                Products
+                <span
+                  className={`absolute left-0 -bottom-0.5 h-[2px] bg-[#8fbc8f]
+              ${window.location.pathname === "/products" ? "w-full" : "w-0"}
+            `}
+                />
+              </span>
             </NavLink>
 
+            {/* ORDERS */}
             <NavLink
               to="/orders"
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                isActive
-                  ? "text-black font-medium border-l-4 border-[#8fbc8f] pl-3"
-                  : "text-gray-700"
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+           ${
+             isActive
+               ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+               : "text-gray-700 hover:bg-gray-100"
+           }`
               }
             >
+              <FiPackage size={18} />
               Orders
             </NavLink>
 
+            {/* CART */}
             <NavLink
               to="/cart"
               onClick={() => setOpen(false)}
-              className="text-gray-700"
+              className={({ isActive }) =>
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+           ${
+             isActive
+               ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+               : "text-gray-700 hover:bg-gray-100"
+           }`
+              }
             >
-              <FiShoppingCart /> Cart
+              <FiShoppingCart size={18} />
+              Cart
+              {cartCount > 0 && (
+                <span className="ml-auto bg-[#8fbc8f] text-white text-xs px-2 py-0.5 rounded-full">
+                  {cartCount}
+                </span>
+              )}
             </NavLink>
 
+            {/* PROFILE */}
             <NavLink
               to="/profile"
               onClick={() => setOpen(false)}
-              className="text-gray-700"
+              className={({ isActive }) =>
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+           ${
+             isActive
+               ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+               : "text-gray-700 hover:bg-gray-100"
+           }`
+              }
             >
-              <FiUser /> Profile
+              <FiUser size={18} />
+              Profile
             </NavLink>
           </div>
         </div>

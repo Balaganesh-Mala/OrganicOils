@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { motion } from "framer-motion";
 import { FaMoneyBillWave, FaCreditCard } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { getMyProfile } from "../api/index.api";
 
 import {
   createOrder,
@@ -35,6 +36,7 @@ const Checkout = () => {
     phone: "",
     street: "",
     city: "",
+    state: "",
     pincode: "",
   });
 
@@ -44,9 +46,41 @@ const Checkout = () => {
     fetchCart();
   }, []);
 
+  useEffect(() => {
+    const loadDefaultAddress = async () => {
+      try {
+        const res = await getMyProfile();
+        const user = res.data.user;
+
+        const defaultAddress = user.addresses?.find((addr) => addr.isDefault);
+
+        if (defaultAddress) {
+          setAddress({
+            fullName: defaultAddress.fullName,
+            phone: defaultAddress.phone,
+            street: defaultAddress.street,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            pincode: defaultAddress.pincode,
+          });
+        }
+      } catch (err) {
+        console.log("No default address found");
+      }
+    };
+
+    loadDefaultAddress();
+  }, []);
+
   /* ================= PLACE ORDER ================= */
   const handlePlaceOrder = async () => {
-    if (!address.fullName || !address.phone || !address.street) {
+    if (
+      !address.fullName ||
+      !address.phone ||
+      !address.street ||
+      !address.city ||
+      !address.pincode
+    ) {
       Swal.fire("Missing details", "Please fill delivery address", "warning");
       return;
     }
@@ -146,34 +180,52 @@ const Checkout = () => {
             <div className="grid sm:grid-cols-2 gap-5">
               <input
                 placeholder="Full Name"
+                value={address.fullName}
                 className={inputClass}
                 onChange={(e) =>
                   setAddress({ ...address, fullName: e.target.value })
                 }
               />
+
               <input
                 placeholder="Phone"
+                value={address.phone}
                 className={inputClass}
                 onChange={(e) =>
                   setAddress({ ...address, phone: e.target.value })
                 }
               />
+
               <input
                 placeholder="Street Address"
+                value={address.street}
                 className={`${inputClass} sm:col-span-2`}
                 onChange={(e) =>
                   setAddress({ ...address, street: e.target.value })
                 }
               />
+
               <input
                 placeholder="City"
+                value={address.city}
                 className={inputClass}
                 onChange={(e) =>
                   setAddress({ ...address, city: e.target.value })
                 }
               />
+
+              <input
+                placeholder="State"
+                value={address.state}
+                className={inputClass}
+                onChange={(e) =>
+                  setAddress({ ...address, state: e.target.value })
+                }
+              />
+
               <input
                 placeholder="Pincode"
+                value={address.pincode}
                 className={inputClass}
                 onChange={(e) =>
                   setAddress({ ...address, pincode: e.target.value })

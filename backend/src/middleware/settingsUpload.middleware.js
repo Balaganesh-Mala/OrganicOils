@@ -2,9 +2,14 @@ import multer from "multer";
 import sharp from "sharp";
 import cloudinary from "../config/cloudinary.js";
 
-const upload = multer({ storage: multer.memoryStorage() });
+/* ================= MULTER MEMORY ================= */
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
 
-export const uploadLogoToCloudinary = async (buffer, filename) => {
+/* ================= UPLOAD LOGO ================= */
+export const uploadLogoToCloudinary = async (buffer) => {
   const optimized = await sharp(buffer)
     .resize(500)
     .toFormat("webp", { quality: 80 })
@@ -12,7 +17,10 @@ export const uploadLogoToCloudinary = async (buffer, filename) => {
 
   const result = await new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
-      { folder: "ecommerce-settings-logo", resource_type: "image" },
+      {
+        folder: "ecommerce-settings-logo",
+        resource_type: "image",
+      },
       (err, res) => {
         if (err) reject(err);
         else resolve(res);
@@ -20,7 +28,10 @@ export const uploadLogoToCloudinary = async (buffer, filename) => {
     ).end(optimized);
   });
 
-  return { public_id: result.public_id, url: result.secure_url }; // ✅ FIXED field names
+  return {
+    public_id: result.public_id,
+    url: result.secure_url,
+  };
 };
 
 export default upload;

@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { FaMinus, FaPlus, FaTrash } from "react-icons/fa";
+import { FaMinus, FaPlus, FaTrash, FaShoppingCart } from "react-icons/fa";
+
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import { useCart } from "../context/CartContext";
@@ -33,9 +34,25 @@ export default function Cart() {
 
   if (!cartItems.length) {
     return (
-      <section className="max-w-7xl mx-auto px-6 pt-24 pb-20">
-        <h1 className="text-3xl font-semibold mb-6">Your Cart</h1>
-        <p className="text-gray-500">Your cart is empty.</p>
+      <section className=" mx-auto px-6 pt-24 pb-20">
+        <div className="flex flex-col items-center justify-center text-center py-16 ">
+          <FaShoppingCart className="text-6xl text-gray-300 mb-4" />
+
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Your cart is empty
+          </h2>
+
+          <p className="text-gray-500 mb-6 max-w-sm">
+            Looks like you haven’t added anything to your cart yet.
+          </p>
+
+          <Link
+            to={"/products"}
+            className="px-6 py-2 rounded-xl bg-[#8fbc8f] text-white hover:bg-[#7aa97a] transition"
+          >
+            Continue Shopping
+          </Link>
+        </div>
       </section>
     );
   }
@@ -74,9 +91,7 @@ export default function Cart() {
                     {item.product.productName}
                   </h3>
 
-                  <p className="text-sm text-gray-500">
-                    {variant.weight}
-                  </p>
+                  <p className="text-sm text-gray-500">{variant.weight}</p>
 
                   <p className="text-sm text-gray-600 mt-1">
                     ₹{variant.price} × {item.quantity}
@@ -86,10 +101,7 @@ export default function Cart() {
                   <div className="flex items-center gap-3 mt-3">
                     <button
                       onClick={() =>
-                        updateQuantity(
-                          item.variantSku,
-                          item.quantity - 1
-                        )
+                        updateQuantity(item.variantSku, item.quantity - 1)
                       }
                       disabled={item.quantity <= 1}
                       className="w-8 h-8 border rounded-md flex items-center justify-center disabled:opacity-40"
@@ -103,10 +115,7 @@ export default function Cart() {
 
                     <button
                       onClick={() =>
-                        updateQuantity(
-                          item.variantSku,
-                          item.quantity + 1
-                        )
+                        updateQuantity(item.variantSku, item.quantity + 1)
                       }
                       disabled={item.quantity >= variant.stock}
                       className="w-8 h-8 border rounded-md flex items-center justify-center disabled:opacity-40"
