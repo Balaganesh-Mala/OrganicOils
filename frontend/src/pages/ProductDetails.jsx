@@ -149,37 +149,51 @@ export default function ProductDetails() {
         <div className="grid md:grid-cols-2 gap-16 items-start">
           {/* IMAGE */}
           <motion.div className="p-6 lg:sticky lg:top-28">
-            <div className="flex gap-4">
-              {product.images.length > 1 && (
-                <div className="flex flex-col gap-3">
-                  {product.images.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveImage(i)}
-                      className={`w-20 h-20 border-2 rounded-xl overflow-hidden
-                        ${
-                          activeImage === i
-                            ? "border-[#8fbc8f]"
-                            : "border-gray-200"
-                        }`}
-                    >
-                      <img
-                        src={img.url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
+  <div className="flex flex-col lg:flex-row gap-4">
 
-              <ImageMagnifier
-                src={product.images[activeImage]?.url}
-                alt={product.productName}
-                zoom={1.5}
-              />
-            </div>
-          </motion.div>
+    {/* THUMBNAILS */}
+    {product.images.length > 1 && (
+      <div
+        className="
+          order-2 lg:order-1
+          flex flex-row lg:flex-col
+          gap-3
+          overflow-x-auto lg:overflow-visible
+        "
+      >
+        {product.images.map((img, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveImage(i)}
+            className={`w-20 h-20 flex-shrink-0 border-2 rounded-xl overflow-hidden
+              ${
+                activeImage === i
+                  ? "border-[#8fbc8f]"
+                  : "border-gray-200"
+              }`}
+          >
+            <img
+              src={img.url}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          </button>
+        ))}
+      </div>
+    )}
+
+    {/* MAIN IMAGE */}
+    <div className="order-1 lg:order-2 flex-1">
+      <ImageMagnifier
+        src={product.images[activeImage]?.url}
+        alt={product.productName}
+        zoom={1.5}
+      />
+    </div>
+
+  </div>
+</motion.div>
+
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

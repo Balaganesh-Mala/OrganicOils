@@ -145,51 +145,82 @@ export default function Profile() {
     <section className="bg-[#faf8f6] min-h-screen pt-8 pb-16">
       <div className="max-w-6xl mx-auto px-6 space-y-5">
         {/* PROFILE HEADER */}
-        <motion.div className="bg-white rounded-3xl p-6 border flex gap-6 align-centerflex justify-between items-center mb-6">
-          <img
-            src={user.avatar}
-            alt="Profile"
-            className="w-24 h-24 rounded-full border object-cover"
-          />
+        <motion.div
+  className="
+    bg-white rounded-3xl p-6 border
+    flex flex-col sm:flex-row
+    gap-6
+    sm:items-center sm:justify-between
+    mb-6
+  "
+>
+  {/* AVATAR */}
+  <div className="flex justify-center sm:justify-start">
+    <img
+      src={user.avatar}
+      alt="Profile"
+      className="w-24 h-24 rounded-full border object-cover"
+    />
+  </div>
 
-          <div className="flex-1">
-            {!editMode ? (
-              <>
-                <h1 className="text-2xl font-semibold">{user.fullName}</h1>
-                <div className="flex gap-4 text-sm text-gray-600 mt-2">
-                  <span className="flex gap-2">
-                    <FaEnvelope /> {user.email}
-                  </span>
-                  <span className="flex gap-2">
-                    <FaPhone /> {user.phone}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <input
-                  className="input"
-                  value={user.fullName}
-                  onChange={(e) =>
-                    setUser({ ...user, fullName: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  value={user.phone}
-                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
-                />
-              </div>
-            )}
-          </div>
+  {/* USER INFO */}
+  <div className="flex-1 text-center sm:text-left">
+    {!editMode ? (
+      <>
+        <h1 className="text-2xl font-semibold">
+          {user.fullName}
+        </h1>
 
-          <button
-            onClick={() => (editMode ? handleSaveProfile() : setEditMode(true))}
-            className="px-5 py-2 bg-[#8fbc8f] text-white rounded-xl flex gap-2"
-          >
-            <FaEdit /> {editMode ? "Save" : "Edit"}
-          </button>
-        </motion.div>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-gray-600 mt-2">
+          <span className="flex items-center justify-center sm:justify-start gap-2">
+            <FaEnvelope />
+            <span className="break-all">{user.email}</span>
+          </span>
+
+          <span className="flex items-center justify-center sm:justify-start gap-2">
+            <FaPhone />
+            <span>{user.phone}</span>
+          </span>
+        </div>
+      </>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input
+          className="input"
+          value={user.fullName}
+          onChange={(e) =>
+            setUser({ ...user, fullName: e.target.value })
+          }
+        />
+        <input
+          className="input"
+          value={user.phone}
+          onChange={(e) =>
+            setUser({ ...user, phone: e.target.value })
+          }
+        />
+      </div>
+    )}
+  </div>
+
+  {/* ACTION BUTTON */}
+  <div className="flex justify-center sm:justify-end">
+    <button
+      onClick={() =>
+        editMode ? handleSaveProfile() : setEditMode(true)
+      }
+      className="
+        px-6 py-2 bg-[#8fbc8f] text-white rounded-xl
+        flex items-center gap-2
+        w-full sm:w-auto
+      "
+    >
+      <FaEdit />
+      {editMode ? "Save" : "Edit"}
+    </button>
+  </div>
+</motion.div>
+
 
         {/* ORDER STATS */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
