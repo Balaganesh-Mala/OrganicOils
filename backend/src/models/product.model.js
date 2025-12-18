@@ -38,7 +38,7 @@ const productSchema = new mongoose.Schema(
 
     variants: {
       type: [variantSchema],
-      validate: [v => v.length > 0, "At least one variant required"],
+      validate: [(v) => v.length > 0, "At least one variant required"],
     },
 
     isOrganic: { type: Boolean, default: false },
@@ -65,6 +65,10 @@ const productSchema = new mongoose.Schema(
     numOfReviews: { type: Number, default: 0 },
 
     reviews: [reviewSchema],
+    isSubscribable: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

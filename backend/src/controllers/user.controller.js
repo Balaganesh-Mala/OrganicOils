@@ -1,5 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user.model.js";
+import cloudinary from "../config/cloudinary.js";
+import upload, { uploadAvatarToCloudinary } from "../middleware/avatarUpload.middleware.js";
 
 /* ================= GET MY PROFILE ================= */
 export const getMyProfile = asyncHandler(async (req, res) => {
@@ -13,7 +15,7 @@ export const getMyProfile = asyncHandler(async (req, res) => {
 
 /* ================= UPDATE PROFILE ================= */
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { fullName, phone, avatar } = req.body;
+  const { fullName, phone } = req.body;
 
   const user = await User.findById(req.user.id);
   if (!user) {
@@ -23,7 +25,17 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
   if (fullName) user.fullName = fullName;
   if (phone) user.phone = phone;
-  if (avatar) user.avatar = avatar;
+
+  /* 🔥 AVATAR UPLOAD */
+  if (req.file) {
+    // delete old avatar
+    if (user.avatar?.public_id) {
+      await cloudinary.uploader.destroy(user.avatar.public_id);
+    }
+
+    const uploadedAvatar = await uploadAvatarToCloudinary(req.file.buffer);
+    user.avatar = uploadedAvatar;
+  }
 
   await user.save();
 

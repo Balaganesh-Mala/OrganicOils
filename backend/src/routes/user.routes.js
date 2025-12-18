@@ -1,5 +1,6 @@
 import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
+import upload from "../middleware/avatarUpload.middleware.js";
 import {
   getMyProfile,
   updateProfile,
@@ -12,7 +13,12 @@ import {
 const router = express.Router();
 
 router.get("/me", protect, getMyProfile);
-router.put("/me", protect, updateProfile);
+router.put(
+  "/me",
+  protect,
+  upload.single("avatar"), 
+  updateProfile
+);
 
 router.post("/address", protect, addAddress);
 router.put("/address/:addressId", protect, updateAddress);

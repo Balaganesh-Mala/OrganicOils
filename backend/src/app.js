@@ -16,6 +16,7 @@ import settingsRoutes from "./routes/settings.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import videoRoutes from "./routes/video.routes.js";
+import subscriptionRoutes from "./routes/subscription.routes.js";
 
 
 dotenv.config();
@@ -50,6 +51,7 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/videos", videoRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
 
 // ✅ Test Route
 app.get("/", (req, res) => {

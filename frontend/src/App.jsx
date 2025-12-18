@@ -13,6 +13,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/layout/ScrollToTop";
+import MySubscriptions from "./pages/MySubscriptions";
+import Subscribe from "./pages/Subscribe";
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/subscriptions" element={<MySubscriptions />} />
+          <Route path="/subscribe/:productId" element={<Subscribe />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/login" element={<Login />} />

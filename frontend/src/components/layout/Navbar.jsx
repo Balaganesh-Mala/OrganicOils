@@ -8,6 +8,7 @@ import {
   FiPackage,
   FiHome,
 } from "react-icons/fi";
+import { FaCrown } from "react-icons/fa";
 
 import { getPublicSettings, getCart } from "../../api/index.api";
 
@@ -97,6 +98,20 @@ export default function Navbar() {
           >
             Products
           </NavLink>
+          <NavLink
+            to="/subscriptions"
+            className={({ isActive }) =>
+              `flex items-center gap-1 pb-1 transition relative
+     ${
+       isActive
+         ? "text-black after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:bg-[#d4af37]"
+         : "text-gray-700 hover:text-black"
+     }`
+            }
+          >
+            <FaCrown size={18} className="text-[#d4af37]" />
+            <span>Subscriptions</span>
+          </NavLink>
 
           <NavLink
             to="/orders"
@@ -141,7 +156,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* MOBILE MENU */}
       {/* MOBILE MENU */}
       {open && (
         <div className="md:hidden bg-white border-t">
@@ -194,6 +208,22 @@ export default function Navbar() {
             `}
                 />
               </span>
+            </NavLink>
+            {/* SUBSCRIPTIONS */}
+            <NavLink
+              to="/subscriptions"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 py-2 px-3 rounded-lg transition
+     ${
+       isActive
+         ? "bg-[#f1f7f1] text-black border-l-4 border-[#8fbc8f]"
+         : "text-gray-700 hover:bg-gray-100"
+     }`
+              }
+            >
+              <FaCrown size={18} />
+              Subscriptions
             </NavLink>
 
             {/* ORDERS */}

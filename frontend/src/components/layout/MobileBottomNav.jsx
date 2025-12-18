@@ -1,11 +1,11 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { FiHome, FiPackage, FiShoppingCart, FiUser } from "react-icons/fi";
+import { FiHome, FiPackage, FiShoppingCart, FiUser, FiShoppingBag } from "react-icons/fi";
 
 const tabs = [
   { to: "/", label: "Home", icon: FiHome },
   { to: "/products", label: "Products", icon: FiPackage },
   { to: "/cart", label: "Cart", icon: FiShoppingCart },
-  { to: "/orders", label: "Orders", icon: FiPackage },
+  { to: "/orders", label: "Orders", icon: FiShoppingBag },
   { to: "/profile", label: "Profile", icon: FiUser },
 ];
 

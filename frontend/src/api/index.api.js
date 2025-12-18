@@ -42,6 +42,15 @@ export const createRazorpayOrder = (data) =>
 export const verifyRazorpayPayment = (data) =>
   api.post("/payments/verify", data);
 
+
+export const createSubscriptionOrder = (data) =>
+  api.post("/payments/subscription/create-order", data);
+
+export const verifySubscriptionPayment = (data) =>
+  api.post("/payments/subscription/verify", data);
+
+
+
 /* ================= ADDRESSES ================= */
 
 // Add new address
@@ -72,9 +81,14 @@ export const getMyProfile = () => {
 };
 
 // Update profile (name, phone, avatar)
-export const updateProfile = (data) => {
-  return api.put("/users/me", data);
+export const updateProfile = (formData) => {
+  return api.put("/users/me", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
+
 
 /* ================= VIDEOS ================= */
 export const uploadVideo = (formData) => {
@@ -101,3 +115,20 @@ export const deleteVideo = (id) => {
 export const getPublicSettings = () => {
   return api.get("/settings/public");
 };
+
+/* ================= SUBSCRIPTIONS ================= */
+
+export const createSubscription = (data) =>
+  api.post("/subscriptions", data);
+
+export const getMySubscriptions = () =>
+  api.get("/subscriptions/my");
+
+export const pauseSubscription = (id) =>
+  api.put(`/subscriptions/${id}/pause`);
+
+export const resumeSubscription = (id) =>
+  api.put(`/subscriptions/${id}/resume`);
+
+export const cancelSubscription = (id) =>
+  api.put(`/subscriptions/${id}/cancel`);

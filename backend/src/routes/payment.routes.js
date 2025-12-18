@@ -3,7 +3,9 @@ import {
   createPaymentOrder,
   verifyPayment,
   getMyPayments,
-  getAllPayments
+  getAllPayments,
+  createSubscriptionPaymentOrder,
+  verifySubscriptionPayment,
 } from "../controllers/payment.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
@@ -20,5 +22,9 @@ router.get("/my-payments", protect, getMyPayments);
 
 // Admin can see everything
 router.get("/", protect, adminProtect, getAllPayments);
+
+router.post("/subscription/create-order", protect, createSubscriptionPaymentOrder);
+router.post("/subscription/verify", protect, verifySubscriptionPayment);
+
 
 export default router;

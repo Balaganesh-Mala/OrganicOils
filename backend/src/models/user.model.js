@@ -50,8 +50,11 @@ const userSchema = new mongoose.Schema(
 
     /* PROFILE */
     avatar: {
-      type: String, // store URL directly
-      default: "https://i.pravatar.cc/150",
+      public_id: { type: String },
+      url: {
+        type: String,
+        default: "https://ik.imagekit.io/izqq5ffwt/user-profile-pic.jpg",
+      },
     },
 
     /* ROLE & STATUS */
@@ -92,11 +95,9 @@ userSchema.methods.comparePassword = function (enteredPassword) {
 };
 
 userSchema.methods.generateToken = function () {
-  return jwt.sign(
-    { id: this._id, role: this.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "30d" }
-  );
+  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
+  });
 };
 
 const User = mongoose.model("User", userSchema);

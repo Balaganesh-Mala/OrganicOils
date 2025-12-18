@@ -15,7 +15,9 @@ import {
   FaTrash,
   FaStar,
   FaSignOutAlt,
+  FaCamera,
 } from "react-icons/fa";
+
 import Swal from "sweetalert2";
 
 import {
@@ -37,6 +39,8 @@ export default function Profile() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const navigate = useNavigate();
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   /* ================= LOAD DATA ================= */
   const loadData = async () => {
@@ -82,15 +86,42 @@ export default function Profile() {
     });
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      Swal.fire("Invalid file", "Please select an image", "error");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire("Too large", "Image must be under 5MB", "warning");
+      return;
+    }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   /* ================= PROFILE SAVE ================= */
   const handleSaveProfile = async () => {
     try {
-      const res = await updateProfile({
-        fullName: user.fullName,
-        phone: user.phone,
-      });
+      const formData = new FormData();
+      formData.append("fullName", user.fullName);
+      formData.append("phone", user.phone);
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      const res = await updateProfile(formData);
+
       setUser(res.data.user);
       setEditMode(false);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+
       Swal.fire("Success", "Profile updated", "success");
     } catch {
       Swal.fire("Error", "Profile update failed", "error");
@@ -146,81 +177,105 @@ export default function Profile() {
       <div className="max-w-6xl mx-auto px-6 space-y-5">
         {/* PROFILE HEADER */}
         <motion.div
-  className="
+          className="
     bg-white rounded-3xl p-6 border
     flex flex-col sm:flex-row
     gap-6
     sm:items-center sm:justify-between
     mb-6
   "
->
-  {/* AVATAR */}
-  <div className="flex justify-center sm:justify-start">
-    <img
-      src={user.avatar}
-      alt="Profile"
-      className="w-24 h-24 rounded-full border object-cover"
-    />
-  </div>
+        >
+          {/* AVATAR */}
+          <div className="relative w-24 h-24 mx-auto sm:mx-0">
+            <img
+              src={
+                avatarPreview ||
+                user.avatar?.url ||
+                "https://ik.imagekit.io/izqq5ffwt/user-profile-pic.jpg" ||
+                user.avatar
+              }
+              alt="Profile"
+              className="w-24 h-24 rounded-full border object-cover"
+            />
 
-  {/* USER INFO */}
-  <div className="flex-1 text-center sm:text-left">
-    {!editMode ? (
-      <>
-        <h1 className="text-2xl font-semibold">
-          {user.fullName}
-        </h1>
+            {/* CAMERA ICON */}
+            <label
+              htmlFor="avatarUpload"
+              className="
+      absolute bottom-0 right-0
+      w-8 h-8 rounded-full
+      bg-[#8fbc8f] text-white
+      flex items-center justify-center
+      cursor-pointer shadow-md
+      hover:bg-[#7aa97a] transition
+    "
+            >
+              <FaCamera size={14} />
+            </label>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-gray-600 mt-2">
-          <span className="flex items-center justify-center sm:justify-start gap-2">
-            <FaEnvelope />
-            <span className="break-all">{user.email}</span>
-          </span>
+            {/* HIDDEN FILE INPUT */}
+            <input
+              id="avatarUpload"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+          </div>
 
-          <span className="flex items-center justify-center sm:justify-start gap-2">
-            <FaPhone />
-            <span>{user.phone}</span>
-          </span>
-        </div>
-      </>
-    ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <input
-          className="input"
-          value={user.fullName}
-          onChange={(e) =>
-            setUser({ ...user, fullName: e.target.value })
-          }
-        />
-        <input
-          className="input"
-          value={user.phone}
-          onChange={(e) =>
-            setUser({ ...user, phone: e.target.value })
-          }
-        />
-      </div>
-    )}
-  </div>
+          {/* USER INFO */}
+          <div className="flex-1 text-center sm:text-left">
+            {!editMode ? (
+              <>
+                <h1 className="text-2xl font-semibold">{user.fullName}</h1>
 
-  {/* ACTION BUTTON */}
-  <div className="flex justify-center sm:justify-end">
-    <button
-      onClick={() =>
-        editMode ? handleSaveProfile() : setEditMode(true)
-      }
-      className="
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-gray-600 mt-2">
+                  <span className="flex items-center justify-center sm:justify-start gap-2">
+                    <FaEnvelope />
+                    <span className="break-all">{user.email}</span>
+                  </span>
+
+                  <span className="flex items-center justify-center sm:justify-start gap-2">
+                    <FaPhone />
+                    <span>{user.phone}</span>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input
+                  className="input"
+                  value={user.fullName}
+                  onChange={(e) =>
+                    setUser({ ...user, fullName: e.target.value })
+                  }
+                />
+                <input
+                  className="input"
+                  value={user.phone}
+                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ACTION BUTTON */}
+          <div className="flex justify-center sm:justify-end">
+            <button
+              onClick={() =>
+                editMode ? handleSaveProfile() : setEditMode(true)
+              }
+              className="
         px-6 py-2 bg-[#8fbc8f] text-white rounded-xl
         flex items-center gap-2
         w-full sm:w-auto
       "
-    >
-      <FaEdit />
-      {editMode ? "Save" : "Edit"}
-    </button>
-  </div>
-</motion.div>
-
+            >
+              <FaEdit />
+              {editMode ? "Save" : "Edit"}
+            </button>
+          </div>
+        </motion.div>
 
         {/* ORDER STATS */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

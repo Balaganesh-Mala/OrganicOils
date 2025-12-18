@@ -23,6 +23,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     madeIn,
     isFeatured,
     isBestSeller,
+    isSubscribable,
   } = req.body;
 
   const categoryExists = await Category.findById(category);
@@ -52,6 +53,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     madeIn,
     isFeatured,
     isBestSeller,
+    isSubscribable,
     images,
   });
 
