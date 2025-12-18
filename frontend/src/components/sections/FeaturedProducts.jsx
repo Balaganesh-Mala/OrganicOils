@@ -57,7 +57,7 @@ export default function FeaturedProducts() {
 
         {/* GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {featuredProducts.map((product, index) => (
+          {featuredProducts.slice(0, 8).map((product, index) => (
             <motion.div
               key={product._id}
               initial={{ opacity: 0, y: 30 }}

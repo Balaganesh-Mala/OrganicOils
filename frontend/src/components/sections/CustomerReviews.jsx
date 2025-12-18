@@ -38,7 +38,7 @@ const ReviewCard = ({ review }) => (
 
 export default function CustomerReviews() {
   return (
-    <section className="py-20 bg-[#faf8f6] overflow-hidden">
+    <section className="py-8 bg-[#faf8f6] overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
 
         {/* TITLE */}

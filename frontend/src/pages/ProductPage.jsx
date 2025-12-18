@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import ProductCard from "../components/ui/ProductCard";
-import { categories } from "../data/categories";
 import { FiSearch } from "react-icons/fi";
-import {getProducts } from "../api/index.api";
+import { getProducts, getActiveCategories } from "../api/index.api";
 
 export default function ProductPage() {
   /* ================= STATE ================= */
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]); // ✅ API categories
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
@@ -30,6 +30,21 @@ export default function ProductPage() {
     loadProducts();
   }, []);
 
+  /* ================= FETCH CATEGORIES ================= */
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await getActiveCategories();
+        setCategories(res.data.categories || []);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
   /* ================= FILTER + SORT ================= */
   const filteredProducts = useMemo(() => {
     let data = [...products];
@@ -43,22 +58,16 @@ export default function ProductPage() {
 
     // 📂 CATEGORY FILTER
     if (selectedCategory !== "ALL") {
-      data = data.filter(
-        (p) => p.category?.title === selectedCategory
-      );
+      data = data.filter((p) => p.category?.slug === selectedCategory);
     }
 
     // 💰 SORT
     if (sortBy === "PRICE_LOW_HIGH") {
-      data.sort(
-        (a, b) => a.variants[0].price - b.variants[0].price
-      );
+      data.sort((a, b) => a.variants[0].price - b.variants[0].price);
     }
 
     if (sortBy === "PRICE_HIGH_LOW") {
-      data.sort(
-        (a, b) => b.variants[0].price - a.variants[0].price
-      );
+      data.sort((a, b) => b.variants[0].price - a.variants[0].price);
     }
 
     return data;
@@ -68,9 +77,7 @@ export default function ProductPage() {
   return (
     <section className="bg-[#faf8f6] min-h-screen pt-8 pb-16">
       <div className="max-w-7xl mx-auto px-6">
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-
           {/* ================= LEFT SIDEBAR ================= */}
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-2xl p-6 border sticky top-28 flex flex-col gap-6">
@@ -86,8 +93,8 @@ export default function ProductPage() {
                   focus:ring-[#8fbc8f]/40"
                 >
                   <option value="ALL">All Categories</option>
-                  {categories.filter(c => c.isActive).map(cat => (
-                    <option key={cat._id} value={cat.title}>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.slug}>
                       {cat.title}
                     </option>
                   ))}
@@ -126,13 +133,13 @@ export default function ProductPage() {
                       All Categories
                     </button>
 
-                    {categories.filter(c => c.isActive).map(cat => (
+                    {categories.map((cat) => (
                       <button
                         key={cat._id}
-                        onClick={() => setSelectedCategory(cat.title)}
+                        onClick={() => setSelectedCategory(cat.slug)}
                         className={`px-3 py-2 rounded-lg text-left transition
                           ${
-                            selectedCategory === cat.title
+                            selectedCategory === cat.slug
                               ? "bg-[#8fbc8f]/10 text-[#8fbc8f] font-medium"
                               : "hover:bg-gray-100"
                           }`}
@@ -189,18 +196,60 @@ export default function ProductPage() {
             </div>
 
             {loading ? (
-              <p className="text-gray-500">Loading products...</p>
+              <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-[#8fbc8f] border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : filteredProducts.length === 0 ? (
-              <p className="text-gray-500">No products found.</p>
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                {/* ICON */}
+                <div className="w-16 h-16 rounded-full bg-[#f1f7f1] flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-8 h-8 text-[#8fbc8f]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 3h18M9 3v18m6-18v18M4 7h16M4 11h16M4 15h16M4 19h16"
+                    />
+                  </svg>
+                </div>
+
+                {/* TEXT */}
+                <h3 className="text-lg font-semibold text-gray-800">
+                  No products found
+                </h3>
+
+                <p className="text-sm text-gray-500 mt-1 max-w-sm">
+                  Try adjusting your search, changing the category, or clearing
+                  filters to see more products.
+                </p>
+
+                {/* OPTIONAL ACTION */}
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setSelectedCategory("ALL");
+                  }}
+                  className="mt-6 px-5 py-2.5 rounded-xl
+      bg-[#8fbc8f] text-white text-sm font-medium
+      hover:bg-[#93c572] transition"
+                >
+                  Clear Filters
+                </button>
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                {filteredProducts.map(product => (
+                {filteredProducts.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}
               </div>
             )}
           </div>
-
         </div>
       </div>
     </section>

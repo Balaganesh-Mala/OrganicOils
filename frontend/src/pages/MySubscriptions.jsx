@@ -7,6 +7,7 @@ import {
   cancelSubscription,
 } from "../api/index.api";
 import { GiMilkCarton } from "react-icons/gi";
+import { Link } from "react-router-dom";
 
 /* ================= HELPERS ================= */
 const formatPlan = (freq) => {
@@ -122,16 +123,17 @@ export default function MySubscriptions() {
             Subscribe to daily milk delivery and never miss fresh milk again.
           </p>
 
-          <button
-            onClick={() => (window.location.href = "/products")}
+          <Link
+            to="/products"
             className="
-      mt-4 px-6 py-3 rounded-xl
-      bg-[#8fbc8f] text-white font-medium
-      hover:bg-[#93c572] transition
-    "
+    mt-4 inline-flex items-center justify-center
+    px-6 py-3 rounded-xl
+    bg-[#8fbc8f] text-white font-medium
+    hover:bg-[#93c572] transition
+  "
           >
             Browse Products
-          </button>
+          </Link>
         </div>
       </section>
     );
