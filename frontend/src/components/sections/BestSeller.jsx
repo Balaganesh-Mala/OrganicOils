@@ -1,34 +1,58 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import ProductCard from "../ui/ProductCard";
-import { products } from "../../data/products";
+import { getProducts } from "../../api/index.api";
 
 export default function BestSeller() {
-  // ✅ FILTER BEST SELLERS
-  const bestSellers = products.filter(
-    (product) => product.isBestSeller && product.isActive
-  );
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ❌ IF NO BEST SELLERS
+  /* ================= LOAD BEST SELLERS ================= */
+  useEffect(() => {
+    const loadBestSellers = async () => {
+      try {
+        const res = await getProducts({
+          isBestSeller: true,
+          isActive: true,
+        });
+
+        setBestSellers(res.data.products || []);
+      } catch (err) {
+        console.error("Failed to load best sellers", err);
+        setBestSellers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBestSellers();
+  }, []);
+
+  /* ================= LOADING STATE ================= */
+  if (loading) return null;
+
+  /* ================= EMPTY STATE ================= */
   if (bestSellers.length === 0) return null;
 
   return (
     <section className="bg-[#ace1af]/20 py-20">
       <div className="max-w-7xl mx-auto px-6">
-        {/* SECTION HEADER */}
+        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-12 flex flex-col items-left "
+          className="mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900">
             Best Sellers
           </h2>
-          <p className="text-gray-600 mt-2 text-left"> 
+
+          <p className="text-gray-600 mt-2 max-w-xl">
             Our most loved products, trusted by customers for purity and quality
           </p>
 
-          <div className="mt-4 h-1 w-16 bg-[#ace1af]  rounded-full" />
+          <div className="mt-4 h-1 w-16 bg-[#ace1af] rounded-full" />
         </motion.div>
 
         {/* PRODUCT GRID */}
@@ -39,7 +63,7 @@ export default function BestSeller() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.08 }}
             >
               <ProductCard product={product} />
             </motion.div>

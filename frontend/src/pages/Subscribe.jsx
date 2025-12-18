@@ -23,6 +23,7 @@ export default function Subscribe() {
   const [startDate, setStartDate] = useState("");
   const [addressId, setAddressId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [variantIndex, setVariantIndex] = useState(0);
 
   /* ================= LOAD PRODUCT + USER ================= */
   useEffect(() => {
@@ -47,8 +48,7 @@ export default function Subscribe() {
 
         // ✅ AUTO SELECT: Default → First address
         const selectedAddress =
-          userAddresses.find((addr) => addr.isDefault) ||
-          userAddresses[0];
+          userAddresses.find((addr) => addr.isDefault) || userAddresses[0];
 
         if (selectedAddress) {
           setAddressId(selectedAddress._id);
@@ -74,19 +74,32 @@ export default function Subscribe() {
     );
   }
 
-  const variant = product.variants?.[0];
+  const variant = product?.variants?.[variantIndex];
+
+  if (!variant) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Product variant not available
+      </div>
+    );
+  }
+
   const pricePerUnit = variant.price;
 
-  const durationDays =
-    plan === "DAILY" ? 1 : plan === "WEEKLY" ? 7 : 30;
+  const previewDays = plan === "DAILY" ? 1 : plan === "WEEKLY" ? 7 : 30;
 
-  const totalAmount = pricePerUnit * qty * durationDays;
+  const totalAmount = pricePerUnit * qty * previewDays;
   const hasAddresses = addresses.length > 0;
 
   /* ================= PAY & SUBSCRIBE ================= */
   const handleSubscribe = async () => {
     if (!startDate || !addressId) {
       Swal.fire("Missing details", "Select date & address", "warning");
+      return;
+    }
+    const today = new Date().toISOString().split("T")[0];
+    if (startDate < today) {
+      Swal.fire("Invalid date", "Start date cannot be in the past", "warning");
       return;
     }
 
@@ -110,16 +123,15 @@ export default function Subscribe() {
           await createSubscription({
             productId: product._id,
             variantSku: variant.sku,
-            planType: plan,
+            frequency: plan,
             quantityPerDay: qty,
             startDate,
-            durationDays,
             addressId,
             paymentId: verifyRes.data.payment._id,
           });
 
           Swal.fire("Success", "Subscription activated", "success");
-          navigate("/Subscriptions");
+          navigate("/subscriptions");
         },
         theme: { color: "#8fbc8f" },
       };
@@ -130,6 +142,7 @@ export default function Subscribe() {
       Swal.fire("Error", "Subscription failed", "error");
     }
   };
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <section className="bg-[#faf8f6] min-h-screen pt-8 pb-32">
@@ -163,9 +176,7 @@ export default function Subscribe() {
           />
           <div>
             <p className="font-medium">{product.productName}</p>
-            <p className="text-sm text-gray-600">
-              ₹{pricePerUnit} / unit
-            </p>
+            <p className="text-sm text-gray-600">₹{pricePerUnit} / unit</p>
           </div>
         </div>
 
@@ -192,36 +203,50 @@ export default function Subscribe() {
             </div>
           </div>
 
-          {/* QUANTITY */}
+          {/* VARIANT */}
           <div className="bg-white rounded-2xl p-5 border">
-            <p className="font-medium mb-3">Quantity / day</p>
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                className="w-10 h-10 border rounded-full"
-              >
-                −
-              </button>
-              <span className="font-semibold">{qty} L</span>
-              <button
-                onClick={() => setQty(qty + 1)}
-                className="w-10 h-10 border rounded-full"
-              >
-                +
-              </button>
+            <p className="font-medium mb-3">Select quantity</p>
+
+            <div className="flex gap-2 flex-wrap">
+              {product.variants.map((v, index) => (
+                <button
+                  key={v.sku}
+                  onClick={() => setVariantIndex(index)}
+                  className={`
+          px-4 py-2 rounded-lg text-sm font-medium transition
+          ${
+            variantIndex === index
+              ? "bg-[#8fbc8f] text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }
+        `}
+                >
+                  {v.weight}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* START DATE */}
-          <div className="bg-white rounded-2xl p-5 border">
-            <p className="font-medium mb-3">Start date</p>
-            <input
-              type="date"
-              className="w-full border rounded-lg px-3 py-2 text-sm"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
+          <div className="bg-white rounded-2xl p-5 border space-y-2">
+  <label className="text-sm font-medium text-gray-700">
+    Start date
+  </label>
+
+  <input
+    type="date"
+    min={today}
+    value={startDate}
+    onChange={(e) => setStartDate(e.target.value)}
+    className="
+      w-full rounded-xl border border-gray-300
+      px-4 py-3 text-sm
+      focus:outline-none focus:ring-2 focus:ring-[#8fbc8f]
+      transition
+    "
+  />
+</div>
+
 
           {/* ADDRESS */}
           <div className="bg-white rounded-2xl p-5 border">
@@ -257,7 +282,7 @@ export default function Subscribe() {
         <div className="bg-[#f7f7f5] rounded-2xl p-5 border">
           <div className="flex justify-between text-sm text-gray-600">
             <span>Total days</span>
-            <span>{durationDays}</span>
+            <span>{previewDays}</span>
           </div>
           <div className="flex justify-between text-lg font-semibold mt-2">
             <span>Total amount</span>

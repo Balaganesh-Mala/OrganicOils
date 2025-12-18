@@ -1,5 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { FiHome, FiPackage, FiShoppingCart, FiUser, FiShoppingBag } from "react-icons/fi";
+import { useCart } from "../../context/CartContext";
+
 
 const tabs = [
   { to: "/", label: "Home", icon: FiHome },
@@ -9,8 +11,9 @@ const tabs = [
   { to: "/profile", label: "Profile", icon: FiUser },
 ];
 
-export default function MobileBottomNav({ cartCount = 0 }) {
+export default function MobileBottomNav() {
   const location = useLocation();
+  const { cartCount } = useCart();
 
   const isActive = (path) =>
     path === "/"

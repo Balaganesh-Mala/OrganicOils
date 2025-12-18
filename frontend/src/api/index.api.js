@@ -8,6 +8,11 @@ export const loginUser = (data) => api.post("/auth/login", data);
 
 export const getProfile = () => api.get("/auth/profile");
 
+/* ================= HERO SLIDES ================= */
+export const getHeroSlides = () => api.get("/hero");
+
+/* ================= ACTIVE CATEGORIES ================= */
+export const getActiveCategories = () => api.get("/categories/active");
 /* ================= PRODUCTS ================= */
 export const getProducts = (params = {}) => api.get("/products", { params });
 

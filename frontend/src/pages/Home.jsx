@@ -5,11 +5,13 @@ import FixedBanner from "../components/sections/FixedBanner";
 import RecentlyViewed from "../components/sections/RecentlyViewed";
 import CustomerReviews from "../components/sections/CustomerReviews";
 import InstagramVideos from "../components/sections/InstagramVideos";
+import CategorySection from "../components/sections/CategorySection";
 
 const Home = () => {
   return (
     <>
       <Hero />
+      <CategorySection />
       <BestSeller />
       <FeaturedProducts />
       <FixedBanner />

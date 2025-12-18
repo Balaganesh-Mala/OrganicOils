@@ -17,6 +17,7 @@ import {
   FaArrowLeft,
   FaCrown,
 } from "react-icons/fa";
+import { FiAlertTriangle } from "react-icons/fi";
 import { useCart } from "../context/CartContext";
 
 export default function ProductDetails() {
@@ -130,12 +131,40 @@ export default function ProductDetails() {
   }
 
   if (!product) {
-    return (
-      <section className="pt-32 text-center text-red-600">
-        Product not found
-      </section>
-    );
-  }
+  return (
+    <section className="min-h-screen flex items-center justify-center bg-[#faf8f6] px-4">
+      <div className="p-8 max-w-sm w-full text-center  space-y-4">
+        {/* ICON */}
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+            <FiAlertTriangle className="text-3xl text-red-500" />
+          </div>
+        </div>
+
+        {/* TEXT */}
+        <h2 className="text-xl font-semibold text-gray-900">
+          Product not found
+        </h2>
+
+        <p className="text-sm text-gray-500">
+          The product you’re looking for doesn’t exist or may have been removed.
+        </p>
+
+        {/* ACTION */}
+        <button
+          onClick={() => (window.location.href = "/products")}
+          className="
+            mt-2 px-6 py-3 rounded-xl
+            bg-[#8fbc8f] text-white font-medium
+            hover:bg-[#93c572] transition
+          "
+        >
+          Browse Products
+        </button>
+      </div>
+    </section>
+  );
+}
 
   /* ================= UI (UNCHANGED) ================= */
   return (

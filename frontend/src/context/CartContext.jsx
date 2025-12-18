@@ -65,6 +65,10 @@ export const CartProvider = ({ children }) => {
       );
     }
   };
+  const cartCount = cartItems.reduce(
+    (sum, item) => sum + (item.quantity || 1),
+    0
+  );
 
   /* ================= UPDATE QUANTITY ================= */
   const updateQuantity = async (variantSku, quantity) => {
@@ -127,6 +131,7 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cartItems,
+        cartCount,
         subtotal,
         discount,
         total,

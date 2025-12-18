@@ -8,7 +8,6 @@ import {
 } from "../api/index.api";
 import { GiMilkCarton } from "react-icons/gi";
 
-
 /* ================= HELPERS ================= */
 const formatPlan = (freq) => {
   if (freq === "DAILY") return "Daily Subscription";
@@ -30,20 +29,19 @@ export default function MySubscriptions() {
 
   /* ================= LOAD SUBSCRIPTIONS ================= */
   const loadSubs = async () => {
-  try {
-    const res = await getMySubscriptions();
-    setSubs(res.data.subscriptions || []);
-  } catch (err) {
-    console.error("Load subscriptions failed:", err);
+    try {
+      const res = await getMySubscriptions();
+      setSubs(res.data.subscriptions || []);
+    } catch (err) {
+      console.error("Load subscriptions failed:", err);
 
-    // ✅ DO NOT show error popup
-    // ✅ Just show empty state
-    setSubs([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      // ✅ DO NOT show error popup
+      // ✅ Just show empty state
+      setSubs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadSubs();
@@ -109,33 +107,32 @@ export default function MySubscriptions() {
     return (
       <section className="bg-[#faf8f6] min-h-screen pt-16 pb-24">
         <div className="max-w-md mx-auto text-center space-y-4">
-  {/* ICON */}
-  <div className="flex justify-center">
-    <div className="w-20 h-20 rounded-full bg-[#f1f7f1] flex items-center justify-center">
-      <GiMilkCarton className="text-4xl text-[#8fbc8f]" />
-    </div>
-  </div>
+          {/* ICON */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-[#f1f7f1] flex items-center justify-center">
+              <GiMilkCarton className="text-4xl text-[#8fbc8f]" />
+            </div>
+          </div>
 
-  <h2 className="text-xl font-semibold text-gray-900">
-    No subscriptions yet
-  </h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            No subscriptions yet
+          </h2>
 
-  <p className="text-sm text-gray-500">
-    Subscribe to daily milk delivery and never miss fresh milk again.
-  </p>
+          <p className="text-sm text-gray-500">
+            Subscribe to daily milk delivery and never miss fresh milk again.
+          </p>
 
-  <button
-    onClick={() => (window.location.href = "/products")}
-    className="
+          <button
+            onClick={() => (window.location.href = "/products")}
+            className="
       mt-4 px-6 py-3 rounded-xl
       bg-[#8fbc8f] text-white font-medium
       hover:bg-[#93c572] transition
     "
-  >
-    Browse Products
-  </button>
-</div>
-
+          >
+            Browse Products
+          </button>
+        </div>
       </section>
     );
   }
@@ -150,77 +147,125 @@ export default function MySubscriptions() {
           {subs.map((sub) => (
             <div
               key={sub._id}
-              className="bg-white rounded-3xl border p-6 space-y-3 shadow-sm"
+              className="
+      bg-white border rounded-2xl
+      p-5 md:p-6
+      flex gap-4
+      shadow-sm hover:shadow-md transition
+    "
             >
-              {/* PRODUCT */}
-              <h2 className="font-semibold text-lg text-gray-900">
-                {sub.product?.productName || "Product"}
-              </h2>
+              {/* RIGHT CONTENT */}
+              <div className="flex-1 space-y-3">
+                {/* TITLE */}
+                <div className="flex justify-between item-center">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {sub.product?.productName}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {formatPlan(sub.frequency)}
+                    </p>
+                  </div>
+                  {/* LEFT ICON + STATUS */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div
+                      className="
+          w-12 h-12 rounded-full
+          bg-[#f1f7f1]
+          flex items-center justify-center
+        "
+                    >
+                      <GiMilkCarton className="text-2xl text-[#8fbc8f]" />
+                    </div>
 
-              {/* PLAN */}
-              <p className="text-sm text-gray-600">
-                Plan: <strong>{formatPlan(sub.frequency)}</strong>
-              </p>
+                    <span
+                      className={`
+          px-3 py-1 rounded-full
+          text-xs font-semibold
+          ${statusStyles[sub.status]}
+        `}
+                    >
+                      {sub.status}
+                    </span>
+                  </div>
+                </div>
+                <hr className="my-2" />
+                {/* META */}
+                <div className="grid grid-cols-2 gap-y-1 text-sm text-gray-600">
+                  <p>Quantity</p>
+                  <p className="text-right font-medium">
+                    {sub.quantityPerDay} / day
+                  </p>
 
-              {/* DETAILS */}
-              <p className="text-sm text-gray-600">
-                Quantity / day: {sub.quantityPerDay}
-              </p>
+                  <p>Variant</p>
+                  <p className="text-right">{sub.variantSku}</p>
 
-              <p className="text-sm text-gray-600">
-                Variant: {sub.variantSku}
-              </p>
+                  <p>Start</p>
+                  <p className="text-right">
+                    {new Date(sub.startDate).toLocaleDateString()}
+                  </p>
 
-              <p className="text-sm text-gray-600">
-                Start: {new Date(sub.startDate).toLocaleDateString()}
-              </p>
+                  <p>End</p>
+                  <p className="text-right">
+                    {new Date(sub.endDate).toLocaleDateString()}
+                  </p>
+                </div>
 
-              <p className="text-sm text-gray-600">
-                End: {new Date(sub.endDate).toLocaleDateString()}
-              </p>
+                {/* PRICE */}
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-sm text-gray-500">Total paid</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    ₹{sub.totalAmount}
+                  </span>
+                </div>
 
-              <p className="text-sm text-gray-600">
-                Total Paid: ₹{sub.totalAmount}
-              </p>
+                {/* ACTIONS */}
+                <div className="flex gap-2 pt-3">
+                  {sub.status === "ACTIVE" && (
+                    <button
+                      disabled={actionLoading === sub._id}
+                      onClick={() => handlePause(sub._id)}
+                      className="
+              flex-1 py-2 rounded-lg
+              bg-yellow-100 text-yellow-800
+              text-sm font-medium
+              hover:bg-yellow-200 transition
+            "
+                    >
+                      Pause
+                    </button>
+                  )}
 
-              {/* STATUS */}
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[sub.status]}`}
-              >
-                {sub.status}
-              </span>
+                  {sub.status === "PAUSED" && (
+                    <button
+                      disabled={actionLoading === sub._id}
+                      onClick={() => handleResume(sub._id)}
+                      className="
+              flex-1 py-2 rounded-lg
+              bg-green-100 text-green-800
+              text-sm font-medium
+              hover:bg-green-200 transition
+            "
+                    >
+                      Resume
+                    </button>
+                  )}
 
-              {/* ACTIONS */}
-              <div className="flex flex-wrap gap-3 pt-3">
-                {sub.status === "ACTIVE" && (
-                  <button
-                    disabled={actionLoading === sub._id}
-                    onClick={() => handlePause(sub._id)}
-                    className="px-4 py-2 rounded-xl bg-yellow-500 text-white text-sm disabled:opacity-60"
-                  >
-                    Pause
-                  </button>
-                )}
-
-                {sub.status === "PAUSED" && (
-                  <button
-                    disabled={actionLoading === sub._id}
-                    onClick={() => handleResume(sub._id)}
-                    className="px-4 py-2 rounded-xl bg-green-600 text-white text-sm disabled:opacity-60"
-                  >
-                    Resume
-                  </button>
-                )}
-
-                {sub.status !== "CANCELLED" && (
-                  <button
-                    disabled={actionLoading === sub._id}
-                    onClick={() => handleCancel(sub._id)}
-                    className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-                )}
+                  {sub.status !== "CANCELLED" && (
+                    <button
+                      disabled={actionLoading === sub._id}
+                      onClick={() => handleCancel(sub._id)}
+                      className="
+              flex-1 py-2 rounded-lg
+              bg-red-100 text-red-700
+              text-sm font-medium
+              hover:bg-red-200 transition
+            "
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

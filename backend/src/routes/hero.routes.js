@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../middleware/upload.middleware.js";
+import {upload} from "../middleware/upload.middleware.js";
 
 import {
   createHeroSlide,
@@ -9,7 +9,7 @@ import {
 } from "../controllers/hero.controller.js";
 
 import { protect } from "../middleware/auth.middleware.js";
-import { isAdmin } from "../middleware/admin.middleware.js";
+import { adminProtect } from "../middleware/admin.middleware.js";
 
 const router = express.Router();
 
@@ -17,8 +17,8 @@ const router = express.Router();
 router.get("/", getHeroSlides);
 
 // Admin
-router.post("/create", protect, isAdmin, upload.single("image"), createHeroSlide);
-router.put("/:id", protect, isAdmin, upload.single("image"), updateHeroSlide);
-router.delete("/:id", protect, isAdmin, deleteHeroSlide);
+router.post("/create", protect, adminProtect, upload.single("image"), createHeroSlide);
+router.put("/:id", protect, adminProtect, upload.single("image"), updateHeroSlide);
+router.delete("/:id", protect, adminProtect, deleteHeroSlide);
 
 export default router;

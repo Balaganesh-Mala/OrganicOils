@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 import {
   FiMenu,
   FiX,
@@ -21,7 +22,8 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [logo, setLogo] = useState(null);
   const [storeName, setStoreName] = useState("Store");
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount } = useCart();
+
 
   /* ================= LOAD SETTINGS ================= */
   useEffect(() => {
@@ -40,23 +42,7 @@ export default function Navbar() {
     loadSettings();
   }, []);
 
-  /* ================= LOAD CART COUNT ================= */
-  useEffect(() => {
-    const loadCart = async () => {
-      try {
-        const res = await getCart();
-        const items = res.data.cart?.items || [];
-
-        const totalQty = items.reduce((sum, item) => sum + (item.qty || 1), 0);
-
-        setCartCount(totalQty);
-      } catch (err) {
-        setCartCount(0);
-      }
-    };
-
-    loadCart();
-  }, []);
+  
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#faf9f7]/85 backdrop-blur-md border-b border-gray-200 shadow-sm">
@@ -148,12 +134,27 @@ export default function Navbar() {
         </div>
 
         {/* MOBILE MENU BUTTON */}
-        <button
-          className="md:hidden text-2xl text-gray-700"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <FiX /> : <FiMenu />}
-        </button>
+        <div className="md:hidden flex items-center gap-3">
+          {/* SUBSCRIPTIONS ICON (MOBILE ONLY) */}
+          <NavLink
+            to="/subscriptions"
+            className="flex items-center justify-center
+      w-9 h-9 rounded-full
+      bg-[#f1f7f1]
+      hover:bg-[#e7f2e7]
+      transition"
+          >
+            <FaCrown className="text-[#d4af37] text-lg" />
+          </NavLink>
+
+          {/* MENU TOGGLE */}
+          <button
+            className="text-2xl text-gray-700"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
       </div>
 
       {/* MOBILE MENU */}

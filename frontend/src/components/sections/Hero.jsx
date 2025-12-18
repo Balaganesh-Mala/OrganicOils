@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getHeroSlides } from "../../api/index.api";
 
-/* ================= HERO BACKGROUND IMAGES ================= */
-import image1 from "../../assets/images/hero1.png";
-import image2 from "../../assets/images/hero2.png";
-import image3 from "../../assets/images/hero3.png";
 
 /* ================= CATEGORY CARD IMAGES ================= */
 import heroCard1 from "../../assets/images/heroCard1.png";
@@ -18,35 +15,33 @@ import heroCard7 from "../../assets/images/heroCard7.png";
 
 export default function Hero() {
   const navigate = useNavigate();
-
-  /* ================= HERO SLIDES ================= */
-  const slides = [
-    {
-      title: "Pure & Traditional Organic Oils",
-      subtitle: "Cold pressed. Chemical free. Straight from farmers.",
-      image: image1,
-    },
-    {
-      title: "Healthy Cooking Starts Here",
-      subtitle: "Traditional methods for modern kitchens.",
-      image: image2,
-    },
-    {
-      title: "Taste the Authenticity",
-      subtitle: "Oils, pickles & seeds made with care.",
-      image: image3,
-    },
-  ];
-
+  const [slides, setSlides] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
 
-    return () => clearInterval(timer);
-  }, []);
+  useEffect(() => {
+  const loadHeroSlides = async () => {
+    try {
+      const res = await getHeroSlides();
+      setSlides(res.data.slides || []);
+    } catch (err) {
+      console.error("Hero API error", err);
+    }
+  };
+
+  loadHeroSlides();
+}, []);
+
+  useEffect(() => {
+  if (slides.length === 0) return;
+
+  const timer = setInterval(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, 5000);
+
+  return () => clearInterval(timer);
+}, [slides.length]);
+
 
   /* ================= CATEGORY CARDS ================= */
   const categories = [
@@ -111,7 +106,7 @@ export default function Hero() {
             index === currentSlide ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            backgroundImage: `url(${slide.image})`,
+            backgroundImage: `url(${slide.image?.url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}

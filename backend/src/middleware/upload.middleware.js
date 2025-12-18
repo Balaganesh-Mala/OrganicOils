@@ -23,6 +23,7 @@ export const uploadToCloudinary = (buffer, folder = "products") => {
           resolve({
             public_id: result.public_id,
             url: result.secure_url,
+            secure_url: result.secure_url,
           });
       }
     );
