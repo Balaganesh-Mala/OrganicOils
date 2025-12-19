@@ -50,20 +50,30 @@ export default function ProductDetails() {
   useEffect(() => {
     const loadProduct = async () => {
       try {
+        setLoading(true);
+
+        // 1️⃣ Load selected product
         const res = await getProductById(id);
         const prod = res.data.product;
 
         setProduct(prod);
         addRecentlyViewed(prod);
 
-        // similar products by category
-        const list = await getProducts({
-          category: prod.category,
-        });
+        // 2️⃣ Load ALL products (no backend filters)
+        const list = await getProducts();
+        const allProducts = list.data.products || [];
 
-        setSimilarProducts(
-          list.data.products.filter((p) => p._id !== prod._id)
+        // 3️⃣ Frontend filter: same category + active + not same product
+        const similar = allProducts.filter(
+          (p) =>
+            p._id !== prod._id &&
+            p.isActive &&
+            p.category?._id === prod.category?._id
         );
+
+        setSimilarProducts(similar);
+
+        // 4️⃣ Check if user already reviewed
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user?._id;
 
@@ -74,7 +84,7 @@ export default function ProductDetails() {
           setHasReviewed(true);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load product", err);
       } finally {
         setLoading(false);
       }
@@ -143,9 +153,9 @@ export default function ProductDetails() {
   /* ================= LOADING ================= */
   if (loading) {
     return (
-      <section className="pt-32 text-center text-gray-500">
-        Loading product...
-      </section>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#8fbc8f] border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
 
@@ -502,18 +512,29 @@ export default function ProductDetails() {
 
             {/* META */}
             <div className="pt-0 space-y-1 text-sm text-gray-600">
-              <p>
-                <strong>Ingredients:</strong> {product?.ingredients?.join(", ")}
-              </p>
-              <p>
-                <strong>Shelf Life:</strong> {product?.shelfLife}
-              </p>
-              <p>
-                <strong>Storage:</strong> {product?.storageInstructions}
-              </p>
-              <p>
-                <strong>Made in:</strong> {product?.madeIn}
-              </p>
+              {product?.ingredients?.length > 0 && (
+                <p>
+                  <strong>Ingredients:</strong> {product.ingredients.join(", ")}
+                </p>
+              )}
+
+              {product?.shelfLife && (
+                <p>
+                  <strong>Shelf Life:</strong> {product.shelfLife}
+                </p>
+              )}
+
+              {product?.storageInstructions && (
+                <p>
+                  <strong>Storage:</strong> {product.storageInstructions}
+                </p>
+              )}
+
+              {product?.madeIn && (
+                <p>
+                  <strong>Made in:</strong> {product.madeIn}
+                </p>
+              )}
             </div>
           </motion.div>
         </div>

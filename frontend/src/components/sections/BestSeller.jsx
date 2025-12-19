@@ -8,25 +8,29 @@ export default function BestSeller() {
   const [loading, setLoading] = useState(true);
 
   /* ================= LOAD BEST SELLERS ================= */
-  useEffect(() => {
-    const loadBestSellers = async () => {
-      try {
-        const res = await getProducts({
-          isBestSeller: true,
-          isActive: true,
-        });
+ useEffect(() => {
+  const loadBestSellers = async () => {
+    try {
+      setLoading(true);
 
-        setBestSellers(res.data.products || []);
-      } catch (err) {
-        console.error("Failed to load best sellers", err);
-        setBestSellers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const res = await getProducts();
 
-    loadBestSellers();
-  }, []);
+      const bestSellers = (res.data.products || []).filter(
+        (p) => p.isBestSeller && p.isActive
+      );
+
+      setBestSellers(bestSellers);
+    } catch (err) {
+      console.error("Failed to load best sellers", err);
+      setBestSellers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadBestSellers();
+}, []);
+
 
   /* ================= LOADING STATE ================= */
   if (loading) return null;

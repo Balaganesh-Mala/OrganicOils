@@ -9,24 +9,28 @@ export default function FeaturedProducts() {
 
   /* ================= LOAD FEATURED PRODUCTS ================= */
   useEffect(() => {
-    const loadFeaturedProducts = async () => {
-      try {
-        const res = await getProducts({
-          isFeatured: true,
-          isActive: true,
-        });
+  const loadFeaturedProducts = async () => {
+    try {
+      setLoading(true);
 
-        setFeaturedProducts(res.data.products || []);
-      } catch (err) {
-        console.error("Failed to load featured products", err);
-        setFeaturedProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const res = await getProducts();
 
-    loadFeaturedProducts();
-  }, []);
+      const featured = (res.data.products || []).filter(
+        (p) => p.isFeatured && p.isActive
+      );
+
+      setFeaturedProducts(featured);
+    } catch (err) {
+      console.error("Failed to load featured products", err);
+      setFeaturedProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadFeaturedProducts();
+}, []);
+
 
   /* ================= LOADING ================= */
   if (loading) return null;

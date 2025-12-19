@@ -68,8 +68,8 @@ export default function Subscribe() {
   /* ================= SAFE GUARD ================= */
   if (loading || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading subscription...</p>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#8fbc8f] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -229,24 +229,23 @@ export default function Subscribe() {
 
           {/* START DATE */}
           <div className="bg-white rounded-2xl p-5 border space-y-2">
-  <label className="text-sm font-medium text-gray-700">
-    Start date
-  </label>
+            <label className="text-sm font-medium text-gray-700">
+              Start date
+            </label>
 
-  <input
-    type="date"
-    min={today}
-    value={startDate}
-    onChange={(e) => setStartDate(e.target.value)}
-    className="
+            <input
+              type="date"
+              min={today}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="
       w-full rounded-xl border border-gray-300
       px-4 py-3 text-sm
       focus:outline-none focus:ring-2 focus:ring-[#8fbc8f]
       transition
     "
-  />
-</div>
-
+            />
+          </div>
 
           {/* ADDRESS */}
           <div className="bg-white rounded-2xl p-5 border">
