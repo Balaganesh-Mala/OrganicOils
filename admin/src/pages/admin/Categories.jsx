@@ -29,24 +29,23 @@ const Categories = () => {
   const perPage = 50;
 
   const [form, setForm] = useState({
-    name: "",
+    title: "",
     description: "",
     image: null,
   });
 
   const [editId, setEditId] = useState(null);
 
+  /* ================= LOAD ================= */
   const loadCategories = async () => {
     setLoading(true);
     try {
       const res = await getAllCategoriesApi();
       const list = res.data.categories || [];
-
-      // Sort newest first
-      const sorted = [...list].reverse();
+      const sorted = [...list].reverse(); // newest first
       setCategories(sorted);
       setFiltered(sorted);
-    } catch (err) {
+    } catch {
       Swal.fire("Error", "Failed to load categories", "error");
     }
     setLoading(false);
@@ -56,13 +55,13 @@ const Categories = () => {
     loadCategories();
   }, []);
 
-  // Filtering logic
+  /* ================= FILTER ================= */
   useEffect(() => {
     let data = [...categories];
 
     if (search.trim()) {
       data = data.filter((c) =>
-        c.name.toLowerCase().includes(search.toLowerCase())
+        c.title.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -82,30 +81,36 @@ const Categories = () => {
     setPage(1);
   }, [search, startDate, endDate, categories]);
 
-  // Pagination
+  /* ================= PAGINATION ================= */
   const totalPages = Math.ceil(filtered.length / perPage) || 1;
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
+  /* ================= MODALS ================= */
   const openCreateModal = () => {
     setEditId(null);
-    setForm({ name: "", description: "", image: null });
+    setForm({ title: "", description: "", image: null });
     setShowModal(true);
   };
 
   const openEditModal = (cat) => {
     setEditId(cat._id);
-    setForm({ name: cat.name, description: cat.description, image: null });
+    setForm({
+      title: cat.title,
+      description: cat.description || "",
+      image: null,
+    });
     setShowModal(true);
   };
 
+  /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      Swal.fire("Warning", "Name is required", "warning");
+    if (!form.title.trim()) {
+      Swal.fire("Warning", "Title is required", "warning");
       return;
     }
 
     const fd = new FormData();
-    fd.append("name", form.name);
+    fd.append("title", form.title);
     fd.append("description", form.description);
     if (form.image) fd.append("image", form.image);
 
@@ -122,6 +127,7 @@ const Categories = () => {
     }
   };
 
+  /* ================= DELETE ================= */
   const handleDelete = async (id) => {
     Swal.fire({
       title: "Delete Category?",
@@ -140,12 +146,12 @@ const Categories = () => {
     });
   };
 
-  /** 📌 Export Excel **/
+  /* ================= EXPORT EXCEL ================= */
   const exportExcel = () => {
     const sheet = XLSX.utils.json_to_sheet(
       filtered.map((c) => ({
         "Created On": new Date(c.createdAt).toLocaleString(),
-        Name: c.name,
+        Title: c.title,
         Description: c.description,
       }))
     );
@@ -155,20 +161,20 @@ const Categories = () => {
     XLSX.writeFile(wb, `categories_${new Date().toLocaleDateString()}.xlsx`);
   };
 
-  /** 📌 Export PDF **/
+  /* ================= EXPORT PDF ================= */
   const exportPDF = () => {
     const doc = new jsPDF("landscape");
     doc.text("CATEGORY REPORT", 14, 10);
 
     const rows = filtered.map((c) => [
       new Date(c.createdAt).toLocaleString(),
-      c.name,
+      c.title,
       c.description,
     ]);
 
     autoTable(doc, {
       startY: 20,
-      head: [["Created", "Name", "Description"]],
+      head: [["Created", "Title", "Description"]],
       body: rows,
       theme: "grid",
       styles: { fontSize: 8 },
@@ -177,6 +183,7 @@ const Categories = () => {
     doc.save("categories.pdf");
   };
 
+  /* ================= UI ================= */
   return (
     <div className="p-6">
       <div className="flex justify-between mb-6">
@@ -199,7 +206,6 @@ const Categories = () => {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-
         <button
           onClick={exportExcel}
           className="bg-green-600 text-white px-3 py-2 rounded-lg"
@@ -215,7 +221,7 @@ const Categories = () => {
         </button>
       </div>
 
-      {/* Category Table */}
+      {/* Table */}
       <div className="bg-white p-4 shadow rounded-xl overflow-x-auto">
         {loading ? (
           <p className="text-center py-6">Loading...</p>
@@ -226,7 +232,7 @@ const Categories = () => {
             <thead>
               <tr className="border-b text-gray-600">
                 <th className="py-3">Image</th>
-                <th className="py-3">Name</th>
+                <th className="py-3">Title</th>
                 <th className="py-3">Description</th>
                 <th className="py-3 text-right">Actions</th>
               </tr>
@@ -241,7 +247,7 @@ const Categories = () => {
                       alt=""
                     />
                   </td>
-                  <td className="py-3 font-medium">{cat.name}</td>
+                  <td className="py-3 font-medium">{cat.title}</td>
                   <td className="py-3 text-sm">{cat.description}</td>
                   <td className="py-2 text-right space-x-2">
                     <button
@@ -302,7 +308,7 @@ const Categories = () => {
         </div>
       )}
 
-      {/* MODAL */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4">
           <div className="bg-white p-6 rounded-xl w-full max-w-md shadow">
@@ -313,10 +319,12 @@ const Categories = () => {
             <div className="space-y-3">
               <input
                 type="text"
-                placeholder="Category Name"
+                placeholder="Category Title"
                 className="border p-2 rounded w-full"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                value={form.title}
+                onChange={(e) =>
+                  setForm({ ...form, title: e.target.value })
+                }
               />
 
               <textarea
@@ -331,7 +339,9 @@ const Categories = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
+                onChange={(e) =>
+                  setForm({ ...form, image: e.target.files[0] })
+                }
                 className="border p-2 rounded w-full"
               />
 

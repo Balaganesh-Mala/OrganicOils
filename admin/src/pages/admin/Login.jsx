@@ -21,15 +21,16 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (loading) return;
 
+    setLoading(true);
     try {
-      const res = await login(form.email, form.password);
+      await login(form.email, form.password);
 
       Swal.fire({
         icon: "success",
         title: "Login Successful",
-        text: `Welcome back Admin!`,
+        text: "Welcome back Admin!",
         confirmButtonColor: "#ff7a00",
       });
 
@@ -38,24 +39,25 @@ const AdminLogin = () => {
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: err.response?.data?.message || "Invalid email or password",
+        text:
+          err.response?.data?.message ||
+          err.message ||
+          "Invalid email or password",
         confirmButtonColor: "#ff7a00",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
       <div className="bg-white p-8 shadow-xl rounded-xl w-full max-w-md">
-
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-6">
           Admin Login
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-5">
-
           {/* Email Input */}
           <div>
             <label className="block text-gray-700 mb-1 text-sm">Email</label>
@@ -92,7 +94,6 @@ const AdminLogin = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
       </div>
     </div>

@@ -16,6 +16,7 @@ const router = express.Router();
 
 // Create order (checkout)
 router.post("/", protect, createOrder);
+router.put("/:id/status", protect, adminProtect, updateOrderStatus);
 
 // Logged-in user's orders
 router.get("/my", protect, getMyOrders);
@@ -29,6 +30,6 @@ router.get("/:id", protect, getOrderById);
 router.get("/", protect, adminProtect, getAllOrders);
 
 // Update order status (admin)
-router.put("/:id/status", protect, adminProtect, updateOrderStatus);
+
 
 export default router;

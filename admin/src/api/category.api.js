@@ -1,4 +1,4 @@
-import adminApi from "./adminAxios";
+import adminApi from "./adminApi";
 import userApi from "./axios";
 
 // 👉 User: Get all categories

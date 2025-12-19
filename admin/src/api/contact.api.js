@@ -1,4 +1,4 @@
-import adminApi from "./adminAxios";
+import adminApi from "./adminApi";
 
 // Get all messages (ADMIN)
 export const getAllContactMessagesApi = () => {

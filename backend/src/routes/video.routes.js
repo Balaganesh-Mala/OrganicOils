@@ -8,7 +8,7 @@ import {
 
 import { protect } from "../middleware/auth.middleware.js";
 import { adminProtect } from "../middleware/admin.middleware.js";
-import { upload } from "../middleware/upload.middleware.js"; // ✅ CORRECT MULTER
+import { upload } from "../middleware/upload.middleware.js"; 
 
 const router = express.Router();
 

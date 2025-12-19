@@ -157,8 +157,7 @@ export const toggleProductFlags = asyncHandler(async (req, res) => {
   }
 
   if (typeof isFeatured === "boolean") product.isFeatured = isFeatured;
-  if (typeof isBestSeller === "boolean")
-    product.isBestSeller = isBestSeller;
+  if (typeof isBestSeller === "boolean") product.isBestSeller = isBestSeller;
 
   await product.save();
 
@@ -180,8 +179,18 @@ export const addProductReview = asyncHandler(async (req, res) => {
     throw new Error("Product not found");
   }
 
+  const alreadyReviewed = product.reviews.find(
+    (r) => r.user?.toString() === req.user._id.toString()
+  );
+
+  if (alreadyReviewed) {
+    res.status(400);
+    throw new Error("You have already reviewed this product");
+  }
+
   const review = {
-    name: req.user.fullName || "Anonymous",
+    user: req.user._id,
+    name: req.user.fullName,
     rating: Number(rating),
     comment,
   };

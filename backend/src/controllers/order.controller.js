@@ -147,6 +147,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 /* ================= USER ORDERS ================= */
 export const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id })
+  .populate("orderItems.productId", "productName images variants")
     .sort({ createdAt: -1 });
 
   res.json({
@@ -181,6 +182,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
 export const getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate("user", "fullName email")
+    .populate("orderItems.productId", "productName images variants")
     .sort({ createdAt: -1 });
 
   res.json({

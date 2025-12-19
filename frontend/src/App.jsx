@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import MySubscriptions from "./pages/MySubscriptions";
 import Subscribe from "./pages/Subscribe";
+import ContactUs from "./pages/ContactUs";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/subscriptions" element={<MySubscriptions />} />
           <Route path="/subscribe/:productId" element={<Subscribe />} />
+          <Route path="/contact" element={<ContactUs/>}/>
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/login" element={<Login />} />

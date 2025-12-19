@@ -6,7 +6,12 @@ import { motion } from "framer-motion";
 import ImageMagnifier from "../components/ui/ImageMagnifier";
 import ProductCard from "../components/ui/ProductCard";
 
-import { getProductById, getProducts, addToCart } from "../api/index.api";
+import {
+  getProductById,
+  getProducts,
+  addToCart,
+  addProductReview,
+} from "../api/index.api";
 
 import { addRecentlyViewed } from "../utils/recentlyViewed";
 
@@ -33,6 +38,11 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState(0);
   const [variantIndex, setVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const variant = product?.variants?.[variantIndex];
 
@@ -54,6 +64,15 @@ export default function ProductDetails() {
         setSimilarProducts(
           list.data.products.filter((p) => p._id !== prod._id)
         );
+        const user = JSON.parse(localStorage.getItem("user"));
+        const userId = user?._id;
+
+        if (
+          userId &&
+          prod.reviews?.some((r) => r.user?.toString() === userId)
+        ) {
+          setHasReviewed(true);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -131,40 +150,83 @@ export default function ProductDetails() {
   }
 
   if (!product) {
-  return (
-    <section className="min-h-screen flex items-center justify-center bg-[#faf8f6] px-4">
-      <div className="p-8 max-w-sm w-full text-center  space-y-4">
-        {/* ICON */}
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-            <FiAlertTriangle className="text-3xl text-red-500" />
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-[#faf8f6] px-4">
+        <div className="p-8 max-w-sm w-full text-center  space-y-4">
+          {/* ICON */}
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+              <FiAlertTriangle className="text-3xl text-red-500" />
+            </div>
           </div>
-        </div>
 
-        {/* TEXT */}
-        <h2 className="text-xl font-semibold text-gray-900">
-          Product not found
-        </h2>
+          {/* TEXT */}
+          <h2 className="text-xl font-semibold text-gray-900">
+            Product not found
+          </h2>
 
-        <p className="text-sm text-gray-500">
-          The product you’re looking for doesn’t exist or may have been removed.
-        </p>
+          <p className="text-sm text-gray-500">
+            The product you’re looking for doesn’t exist or may have been
+            removed.
+          </p>
 
-        {/* ACTION */}
-        <button
-          onClick={() => (window.location.href = "/products")}
-          className="
+          {/* ACTION */}
+          <button
+            onClick={() => (window.location.href = "/products")}
+            className="
             mt-2 px-6 py-3 rounded-xl
             bg-[#8fbc8f] text-white font-medium
             hover:bg-[#93c572] transition
           "
-        >
-          Browse Products
-        </button>
-      </div>
-    </section>
-  );
-}
+          >
+            Browse Products
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const submitReview = async () => {
+    if (rating === 0) {
+      Swal.fire("Rating required", "Please select a rating", "warning");
+      return;
+    }
+
+    try {
+      setReviewLoading(true);
+
+      await addProductReview(product._id, {
+        rating,
+        comment,
+      });
+
+      Swal.fire("Thank you!", "Review added successfully", "success");
+
+      setRating(0);
+      setComment("");
+
+      // 🔄 Reload product to get new reviews
+      const res = await getProductById(product._id);
+      setProduct(res.data.product);
+    } catch (err) {
+      const message = err;
+
+      if (message === "You have already reviewed this product") {
+        setHasReviewed(true);
+
+        Swal.fire({
+          icon: "info",
+          title: "Already Reviewed",
+          text: "You have already reviewed this product. Thank you!",
+          confirmButtonColor: "#8fbc8f",
+        });
+      } else {
+        Swal.fire("Error", message || "Failed to add review", "error");
+      }
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   /* ================= UI (UNCHANGED) ================= */
   return (
@@ -414,16 +476,16 @@ export default function ProductDetails() {
                   className="
       group
       flex items-center justify-center gap-2
-      w-full py-3 rounded-xl
+      w-full py-3 rounded-lg
       bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500
-      text-gray-900 font-semibold
+      text-white font-semibold
       shadow-md
       hover:shadow-lg
       hover:opacity-95
       transition
     "
                 >
-                  <FaCrown className="text-lg text-yellow-900 group-hover:scale-110 transition" />
+                  <FaCrown className="text-lg text-white group-hover:scale-110 transition" />
                   Subscribe for Daily Delivery
                 </Link>
               )}
@@ -474,6 +536,22 @@ export default function ProductDetails() {
             Customer Reviews
           </h2>
 
+          {/* ================= ADD REVIEW ================= */}
+          {localStorage.getItem("token") && !hasReviewed && (
+            <button
+              onClick={() => setShowReviewModal(true)}
+              className="
+      mb-10 px-6 py-3 rounded-xl
+      bg-[#8fbc8f] text-white font-medium
+      hover:bg-[#93c572] transition
+    "
+            >
+              Write a Review
+            </button>
+          )}
+
+          {/* ================= REVIEWS LIST ================= */}
+
           {!product?.reviews || product.reviews.length === 0 ? (
             <p className="text-gray-500">No reviews yet.</p>
           ) : (
@@ -521,6 +599,96 @@ export default function ProductDetails() {
           )}
         </div>
       </div>
+      {/* ================= REVIEW MODAL ================= */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center">
+          {/* OVERLAY */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowReviewModal(false)}
+          />
+
+          {/* MODAL CARD */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="
+        relative z-30
+        w-full max-w-md
+        bg-white rounded-2xl
+        p-6 space-y-4
+        shadow-xl
+      "
+          >
+            {/* HEADER */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Write a Review</h3>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="text-gray-400 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* STARS */}
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className="text-2xl"
+                >
+                  {star <= rating ? (
+                    <FaStar className="text-yellow-500" />
+                  ) : (
+                    <FaRegStar className="text-gray-300" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* COMMENT */}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Share your experience..."
+              rows={4}
+              className="
+          w-full border rounded-xl
+          p-3 text-sm
+          focus:ring-2 focus:ring-[#8fbc8f]/40
+        "
+            />
+
+            {/* ACTIONS */}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="px-4 py-2 rounded-lg border text-gray-600"
+              >
+                Cancel
+              </button>
+
+              <button
+                disabled={reviewLoading}
+                onClick={async () => {
+                  await submitReview();
+                  setShowReviewModal(false);
+                }}
+                className="
+            px-6 py-2 rounded-lg
+            bg-[#8fbc8f] text-white font-medium
+            hover:bg-[#93c572]
+            disabled:opacity-60
+          "
+              >
+                {reviewLoading ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.section>
   );
 }

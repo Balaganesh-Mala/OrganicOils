@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import adminApi from "../../api/adminAxios";
+import adminApi from "../../api/adminApi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -23,7 +23,7 @@ const Users = () => {
   // Fetch All Users
   const loadUsers = async () => {
     try {
-      const res = await adminApi.get("/admin/users");
+      const res = await adminApi.get("/users");
       const list = res.data.users || [];
 
       // Newest first
@@ -50,7 +50,7 @@ const Users = () => {
     if (s.trim()) {
       data = data.filter(
         (u) =>
-          u.name?.toLowerCase().includes(s) ||
+          u.fullname?.toLowerCase().includes(s) ||
           u.email?.toLowerCase().includes(s)
       );
     }
@@ -81,7 +81,7 @@ const Users = () => {
     const ws = XLSX.utils.json_to_sheet(
       filtered.map((u) => ({
         "User ID": u._id,
-        Name: u.name,
+        Name: u.fullname,
         Email: u.email,
         Phone: u.phone || "N/A",
         "Joined On": new Date(u.createdAt).toLocaleString(),
@@ -101,7 +101,7 @@ const Users = () => {
 
     const tableData = filtered.map((u) => [
       u._id,
-      u.name,
+      u.fullname,
       u.email,
       u.phone || "N/A",
       new Date(u.createdAt).toLocaleString(),
@@ -192,7 +192,7 @@ const Users = () => {
             <tbody>
               {paginated.map((u) => (
                 <tr key={u._id} className="border-b hover:bg-gray-50">
-                  <td className="py-3">{u.name}</td>
+                  <td className="py-3">{u.fullName}</td>
                   <td className="py-3">{u.email}</td>
                   <td className="py-3">{u.phone || "N/A"}</td>
                   <td className="py-3">

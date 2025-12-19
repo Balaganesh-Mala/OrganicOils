@@ -8,11 +8,17 @@ import {
   updateAddress,
   deleteAddress,
   setDefaultAddress,
+  getAllUsersAdmin,
 } from "../controllers/user.controller.js";
 
+import {adminProtect} from "../middleware/admin.middleware.js"
 const router = express.Router();
 
 router.get("/me", protect, getMyProfile);
+
+// ADMIN: Get all users
+router.get("/", adminProtect, getAllUsersAdmin);
+
 router.put(
   "/me",
   protect,

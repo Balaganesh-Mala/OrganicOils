@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import adminApi from "../../api/adminAxios";
+import adminApi from "../../api/adminApi";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
@@ -57,7 +57,7 @@ const AdminOrders = () => {
 
     // Order status filter
     if (statusFilter !== "all") {
-      data = data.filter((o) => o.orderStatus === statusFilter);
+      data = data.filter((o) => o.status === statusFilter);
     }
 
     // Payment method filter
@@ -103,7 +103,7 @@ const AdminOrders = () => {
           "Order Date": new Date(o.createdAt).toLocaleString(), // first column
           "Order ID": o._id,
 
-          "Customer Name": o.user?.name || "N/A",
+          "Customer Name": o.user?.fullname || "N/A",
           "Customer Email": o.user?.email || "N/A",
           "Customer Phone": o.shippingAddress?.phone || "N/A",
 
@@ -115,7 +115,7 @@ const AdminOrders = () => {
           "Payment Method": o.paymentMethod,
           "Payment Status": o.paymentStatus || "Pending",
 
-          "Order Status": o.orderStatus,
+          "Order Status": o.status,
           "Tracking ID": o.trackingId || "N/A",
 
           "Product Name": item.productId?.name || item.name,
@@ -157,7 +157,7 @@ const AdminOrders = () => {
           rows.push([
             new Date(order.createdAt).toLocaleString(),
             order._id,
-            order.user?.name || "N/A",
+            order.user?.fullname || "N/A",
             order.user?.email || "N/A",
             order.shippingAddress?.phone || "N/A",
             item.productId?.name || item.name,
@@ -166,7 +166,7 @@ const AdminOrders = () => {
             "₹" + item.price * item.quantity,
             order.paymentMethod,
             order.paymentStatus || "Pending",
-            order.orderStatus,
+            order.status,
             order.trackingId || "N/A",
             "₹" + order.totalPrice,
           ]);
@@ -228,10 +228,10 @@ const AdminOrders = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="Processing">Processing</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Delivered">Delivered</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="CONFIRMED">CONFIRMED</option>
+          <option value="SHIPPED">SHIPPED</option>
+          <option value="DELIVERED">DELIVERED</option>
+          <option value="CANCELLED">CANCELLED</option>
         </select>
 
         {/* Payment Filter */}
@@ -242,7 +242,7 @@ const AdminOrders = () => {
         >
           <option value="all">All Payments</option>
           <option value="COD">COD</option>
-          <option value="online">Online</option>
+          <option value="ONLINE">ONLINE</option>
         </select>
 
         {/* 📅 Date Filters */}
@@ -301,22 +301,22 @@ const AdminOrders = () => {
 
           <tbody>
             {paginatedData.map((order) => (
-              <tr key={order._id} className="border-b hover:bg-gray-50">
-                <td className="py-3 text-sm">{order._id}</td>
-                <td>{order.user?.name || "-"}</td>
+              <tr key={order.orderId} className="border-b hover:bg-gray-50">
+                <td className="py-3 text-sm">{order.orderId}</td>
+                <td>{order.user?.fullName || "-"}</td>
                 <td>{order.orderItems.length}</td>
-                <td>₹{order.totalPrice}</td>
+                <td>₹{order.priceSummary?.total}</td>
                 <td>
                   <span
                     className={`px-3 py-1 rounded-full text-xs ${
-                      order.orderStatus === "Delivered"
+                      order.status === "DELIVERED"
                         ? "bg-green-100 text-green-600"
-                        : order.orderStatus === "Cancelled"
+                        : order.status === "CANCELLED"
                         ? "bg-red-100 text-red-600"
                         : "bg-orange-100 text-orange-600"
                     }`}
                   >
-                    {order.orderStatus}
+                    {order.status}
                   </span>
                 </td>
                 <td>{order.paymentMethod.toUpperCase()}</td>
@@ -342,7 +342,6 @@ const AdminOrders = () => {
         )}
       </div>
 
-      {/* Pagination */}
       {/* Pagination */}
       <div className="flex justify-center items-center gap-2 mt-8 select-none">
         {/* Prev Button */}

@@ -15,6 +15,7 @@ const adminSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      index: true,
     },
 
     password: {
@@ -26,6 +27,7 @@ const adminSchema = new mongoose.Schema(
 
     role: {
       type: String,
+      enum: ["admin"],
       default: "admin",
     },
 
@@ -48,17 +50,17 @@ adminSchema.pre("save", async function (next) {
 });
 
 /* 🔑 Compare password */
-adminSchema.methods.matchPassword = function (enteredPassword) {
+adminSchema.methods.comparePassword = function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
+
+
 /* 🎟️ JWT */
 adminSchema.methods.generateToken = function () {
-  return jwt.sign(
-    { id: this._id, role: this.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "30d" }
-  );
+  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
 };
 
 export default mongoose.model("Admin", adminSchema);

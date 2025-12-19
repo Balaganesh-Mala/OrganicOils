@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import adminApi from "../../api/adminAxios";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+import adminApi from "../../api/adminApi";
 import Swal from "sweetalert2";
 
 const OrderDetails = () => {
@@ -10,14 +12,15 @@ const OrderDetails = () => {
   const [shipLoading, setShipLoading] = useState(false);
   const [trackLoading, setTrackLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const statusOptions = ["Processing", "Shipped", "Delivered", "Cancelled"];
+  const statusOptions = ["CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
   const colors = {
-    Processing: "bg-orange-100 text-orange-600",
-    Shipped: "bg-blue-100 text-blue-600",
-    Delivered: "bg-green-100 text-green-600",
-    Cancelled: "bg-red-100 text-red-600",
+    CONFIRMED: "bg-orange-100 text-orange-600",
+    SHIPPED: "bg-blue-100 text-blue-600",
+    DELIVERED: "bg-green-100 text-green-600",
+    CANCELLED: "bg-red-100 text-red-600",
   };
 
   const loadOrder = async () => {
@@ -52,10 +55,18 @@ const OrderDetails = () => {
     setShipLoading(true);
     try {
       const res = await adminApi.post(`/orders/ship/${order._id}`);
-      Swal.fire("Shipment Created", `Tracking ID: ${res.data.trackingId}`, "success");
+      Swal.fire(
+        "Shipment Created",
+        `Tracking ID: ${res.data.trackingId}`,
+        "success"
+      );
       loadOrder();
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Shipping failed", "error");
+      Swal.fire(
+        "Error",
+        err.response?.data?.message || "Shipping failed",
+        "error"
+      );
     }
     setShipLoading(false);
   };
@@ -77,6 +88,13 @@ const OrderDetails = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-orange-600 mb-4"
+      >
+        <FaArrowLeft />
+        Back
+      </button>
 
       <h2 className="text-2xl font-bold mb-6">Order Details</h2>
 
@@ -85,31 +103,40 @@ const OrderDetails = () => {
         <p className="font-semibold text-lg">Order #{order._id}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-3 text-sm">
-
           <div>
             <p className="text-gray-500">Customer</p>
-            <p>{order.user?.name}</p>
+            <p>{order.user?.fullName}</p>
             <p className="text-xs text-gray-500">{order.user?.email}</p>
           </div>
 
           <div>
             <p className="text-gray-500">Payment</p>
-            <span className={`px-3 py-1 rounded-full text-xs ${colors[order.paymentStatus]}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs ${
+                colors[order.paymentStatus]
+              }`}
+            >
               {order.paymentStatus}
             </span>
-            <p className="text-xs text-gray-500">Method: {order.paymentMethod}</p>
+            <p className="text-xs text-gray-500">
+              Method: {order.paymentMethod}
+            </p>
           </div>
 
           <div>
             <p className="text-gray-500">Order Status</p>
-            <span className={`px-3 py-1 rounded-full text-xs ${colors[order.orderStatus]}`}>
-              {order.orderStatus}
+            <span
+              className={`px-3 py-1 rounded-full text-xs ${
+                colors[order.status]
+              }`}
+            >
+              {order.status}
             </span>
           </div>
         </div>
 
         {/* SHIP BUTTON */}
-        {!order.trackingId && order.orderStatus === "Processing" && (
+        {!order.trackingId && order.status === "Processing" && (
           <button
             onClick={shipOrder}
             disabled={shipLoading}
@@ -142,12 +169,14 @@ const OrderDetails = () => {
         <p className="font-semibold text-lg mb-4">Update Status</p>
         <select
           className="border p-2 rounded-lg"
-          value={order.orderStatus}
+          value={order.status}
           onChange={(e) => updateStatus(e.target.value)}
           disabled={statusLoading}
         >
           {statusOptions.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
       </div>
@@ -155,9 +184,13 @@ const OrderDetails = () => {
       {/* SHIPPING ADDRESS */}
       <div className="bg-white shadow rounded-xl p-6 mb-6">
         <p className="font-semibold text-lg mb-4">Shipping Address</p>
-        <p><b>{order.shippingAddress.name}</b></p>
+        <p>
+          <b>{order.shippingAddress.name}</b>
+        </p>
         <p>{order.shippingAddress.street}</p>
-        <p>{order.shippingAddress.city}, {order.shippingAddress.state}</p>
+        <p>
+          {order.shippingAddress.city}, {order.shippingAddress.state}
+        </p>
         <p>Pincode: {order.shippingAddress.pincode}</p>
         <p>Phone: {order.shippingAddress.phone}</p>
       </div>
@@ -166,25 +199,62 @@ const OrderDetails = () => {
       <div className="bg-white shadow rounded-xl p-6">
         <p className="font-semibold text-lg mb-4">Order Items</p>
 
-        {order.orderItems.map((it, i) => (
-          <div key={i} className="flex border-b py-3 gap-4">
-            <img
-              className="w-16 h-16 rounded-lg object-cover"
-              src={it.productId?.images?.[0]?.url || "https://via.placeholder.com/60"}
-              alt=""
-            />
+        {order.orderItems.map((it, i) => {
+          const variant = it.productId?.variants?.find(
+            (v) => v.sku === it.variantSku
+          );
 
-            <div className="flex-1">
-              <p>{it.productId?.name || it.name}</p>
-              <p className="text-sm text-gray-600">Qty: {it.quantity}</p>
+          return (
+            <div key={i} className="flex border-b py-3 gap-4">
+              <img
+                className="w-16 h-16 rounded-lg object-cover"
+                src={
+                  it.productId?.images?.[0]?.url ||
+                  "https://via.placeholder.com/60"
+                }
+                alt=""
+              />
+
+              <div className="flex-1">
+                <p className="font-medium">
+                  {it.productId?.productName || it.name}
+                </p>
+
+                {/* 🔹 VARIANT */}
+                {variant && (
+                  <p className="text-xs text-gray-500">
+                    Variant: {variant.weight}
+                  </p>
+                )}
+
+                <p className="text-sm text-gray-600">Qty: {it.quantity}</p>
+              </div>
+
+              <div className="text-right">
+                <p className="font-semibold text-orange-600">₹{it.price}</p>
+
+                <p className="text-xs text-gray-500">
+                  Total: ₹{it.price * it.quantity}
+                </p>
+              </div>
             </div>
+          );
+        })}
 
-            <p className="font-semibold text-orange-600">₹{it.price}</p>
-          </div>
-        ))}
+        <div className="text-right mt-4 space-y-1">
+          <p className="text-gray-600">
+            Subtotal: ₹{order.priceSummary?.subtotal}
+          </p>
 
-        <div className="text-right mt-4 text-lg font-bold">
-          Total: ₹{order.totalPrice}
+          {order.priceSummary?.discount > 0 && (
+            <p className="text-green-600 font-medium">
+              Coupon Discount: −₹{order.priceSummary.discount}
+            </p>
+          )}
+
+          <p className="text-lg font-bold text-orange-600">
+            Total: ₹{order.priceSummary?.total}
+          </p>
         </div>
       </div>
     </div>

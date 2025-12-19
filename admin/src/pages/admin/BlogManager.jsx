@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import adminApi from "../../api/adminAxios";
+import adminApi from "../../api/adminApi";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiEdit2, FiTrash2, FiPlus, FiLoader, FiX, FiUploadCloud } from "react-icons/fi";

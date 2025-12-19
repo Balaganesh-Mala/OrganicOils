@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import adminApi from "../../api/adminAxios";
+import adminApi from "../../api/adminApi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -25,7 +25,7 @@ const Payments = () => {
   // Load payments
  const loadPayments = async () => {
   try {
-    const res = await adminApi.get("/payment");
+    const res = await adminApi.get("/payments");
 
     // Sort payments newest → oldest
     const sorted = [...res.data.payments].sort(
@@ -63,9 +63,9 @@ const Payments = () => {
     // Status filter
     if (statusFilter !== "all") {
       data = data.filter((p) => {
-        if (statusFilter === "Success") return p.status === "paid";
-        if (statusFilter === "Failed") return p.status === "failed";
-        if (statusFilter === "Pending") return p.status === "created";
+        if (statusFilter === "SUCCESS") return p.status === "PAID";
+        if (statusFilter === "FAILED") return p.status === "FAILED";
+        if (statusFilter === "PENDING") return p.status === "created";
         return true;
       });
     }
@@ -100,11 +100,11 @@ const Payments = () => {
         Email: p.user?.email || "N/A",
         Amount: "₹" + p.amount,
         Status:
-          p.status === "paid"
-            ? "Success"
-            : p.status === "failed"
-            ? "Failed"
-            : "Pending",
+          p.status === "PAID"
+            ? "SUCCESS"
+            : p.status === "FAILED"
+            ? "FAILED"
+            : "PENDING",
         Date: new Date(p.createdAt).toLocaleString(),
       }))
     );
@@ -130,11 +130,11 @@ const Payments = () => {
         p.razorpay_order_id || "N/A",
         p.user?.email || "N/A",
         "₹" + p.amount,
-        p.status === "paid"
-          ? "Success"
-          : p.status === "failed"
-          ? "Failed"
-          : "Pending",
+        p.status === "PAID"
+          ? "SUCCESS"
+          : p.status === "FAILED"
+          ? "FAILED"
+          : "PENDING",
         new Date(p.createdAt).toLocaleDateString(),
       ]),
       theme: "grid",
@@ -165,9 +165,9 @@ const Payments = () => {
           className="p-3 border rounded-lg"
         >
           <option value="all">All Status</option>
-          <option value="Success">Success</option>
-          <option value="Failed">Failed</option>
-          <option value="Pending">Pending</option>
+          <option value="SUCCESS">Success</option>
+          <option value="FAILED">Failed</option>
+          <option value="PENDING">Pending</option>
         </select>
 
         {/* Date Range */}
@@ -240,16 +240,16 @@ const Payments = () => {
                   <td>
                     <span
                       className={`px-3 py-1 rounded-full text-xs ${
-                        p.status === "paid"
+                        p.status === "PAID"
                           ? "bg-green-100 text-green-600"
                           : p.status === "failed"
                           ? "bg-red-100 text-red-600"
                           : "bg-orange-100 text-orange-600"
                       }`}
                     >
-                      {p.status === "paid"
+                      {p.status === "PAID"
                         ? "Success"
-                        : p.status === "failed"
+                        : p.status === "FAILED"
                         ? "Failed"
                         : "Pending"}
                     </span>

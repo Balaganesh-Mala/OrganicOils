@@ -18,6 +18,11 @@ export const getProducts = (params = {}) => api.get("/products", { params });
 
 export const getProductById = (id) => api.get(`/products/${id}`);
 
+/* ================= REVIEWS ================= */
+export const addProductReview = (productId, data) =>
+  api.post(`/products/${productId}/review`, data);
+
+
 /* ================= CATEGORIES ================= */
 export const getCategories = () => api.get("/categories");
 
@@ -121,6 +126,7 @@ export const getPublicSettings = () => {
   return api.get("/settings/public");
 };
 
+
 /* ================= SUBSCRIPTIONS ================= */
 
 export const createSubscription = (data) =>
@@ -137,3 +143,9 @@ export const resumeSubscription = (id) =>
 
 export const cancelSubscription = (id) =>
   api.put(`/subscriptions/${id}/cancel`);
+
+/* contact */
+
+export const submitContactMessageApi = (data) => {
+  return api.post("/contact/submit", data);
+};

@@ -7,10 +7,12 @@ import {
   FiSettings,
   FiTrendingUp,
   FiMessageCircle,
-  FiEdit2,
+  FiVideo,
+  FiTag,
+  FiImage,
+  FiRepeat,
 } from "react-icons/fi";
 import { TbCategory2 } from "react-icons/tb";
-
 
 const AdminSidebar = ({ open, setOpen }) => {
   const location = useLocation();
@@ -22,36 +24,42 @@ const AdminSidebar = ({ open, setOpen }) => {
     { name: "Categories", path: "/admin/categories", icon: <TbCategory2 /> },
     { name: "Customers", path: "/admin/users", icon: <FiUsers /> },
     { name: "Payments", path: "/admin/payments", icon: <FiTrendingUp /> },
-    { name: "Blog", path: "/admin/blogs", icon: <FiEdit2/> },
     { name: "Messages", path: "/admin/messages", icon: <FiMessageCircle /> },
+    { name: "Videos", path: "/admin/videos", icon: <FiVideo /> },
+    { name: "Coupons", path: "/admin/coupons", icon: <FiTag /> },
+    { name: "Hero Banners", path: "/admin/hero", icon: <FiImage /> },
+    { name: "Subscriptions", path: "/admin/subscriptions", icon: <FiRepeat /> },
     { name: "Settings", path: "/admin/settings", icon: <FiSettings /> },
   ];
 
   return (
     <>
-      {/* BACKDROP for mobile */}
+      {/* BACKDROP (mobile) */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={() => setOpen(false)}
-        ></div>
+        />
       )}
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg border-r z-50
+        className={`fixed top-0 left-0 h-screen w-64 bg-white shadow-lg border-r z-50
         transform transition-transform duration-300
         ${open ? "translate-x-0" : "-translate-x-64"}
         md:translate-x-0
       `}
       >
-        {/* SIDEBAR HEADER */}
-        <div className="h-16 flex items-center px-6 border-b">
+        {/* HEADER (fixed height) */}
+        <div className="h-16 flex items-center px-6 border-b shrink-0">
           <h1 className="text-xl font-bold text-orange-600">Admin Panel</h1>
         </div>
 
-        {/* MENU */}
-        <nav className="mt-4">
+        {/* ✅ SCROLLABLE MENU */}
+        <nav
+          className="flex-1 overflow-y-auto py-4
+          scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        >
           {menuItems.map((item, idx) => {
             const isActive = location.pathname === item.path;
 
@@ -59,7 +67,7 @@ const AdminSidebar = ({ open, setOpen }) => {
               <Link
                 key={idx}
                 to={item.path}
-                onClick={() => setOpen(false)} // close sidebar on mobile
+                onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-6 py-3 text-sm font-medium
                   transition border-l-4
                   ${

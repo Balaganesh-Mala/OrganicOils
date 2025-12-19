@@ -84,7 +84,7 @@ export default function Navbar() {
           >
             Products
           </NavLink>
-          <NavLink
+          {<NavLink
             to="/subscriptions"
             className={({ isActive }) =>
               `flex items-center gap-1 pb-1 transition relative
@@ -97,7 +97,7 @@ export default function Navbar() {
           >
             <FaCrown size={18} className="text-[#d4af37]" />
             <span>Subscriptions</span>
-          </NavLink>
+          </NavLink>}
 
           <NavLink
             to="/orders"

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import adminApi from "../../api/adminAxios";
+import adminApi from "../../api/adminApi";
 import {
   LineChart,
   Line,
@@ -46,17 +46,25 @@ const AdminDashboardHome = () => {
         setStats(sRes.data.stats || {});
 
         // revenue endpoint returns array of { month: "m-y", total }
-        const rev = (rRes.data.monthlyRevenue || []).map((r) => ({
-          name: r.month,
-          revenue: r.total,
-        }));
+        const rev = (rRes.data.monthlyRevenue || []).map((r) => {
+          const [month, year] = r.month.split("-");
+          const date = new Date(year, month - 1);
+
+          return {
+            name: date.toLocaleString("default", {
+              month: "short",
+              year: "numeric",
+            }),
+            revenue: r.total,
+          };
+        });
+
         setRevenueData(rev);
 
         setTopProducts(tRes.data.topProducts || []);
 
         // recent orders (limit first 6)
         setRecentOrders((oRes.data.orders || []).slice(0, 6));
-        console.log(oRes);
       } catch (err) {
         console.error(err);
         setError(
@@ -180,18 +188,18 @@ const AdminDashboardHome = () => {
                     <td className="py-3 text-sm">
                       {o.orderItems?.length || 0}
                     </td>
-                    <td className="py-3 text-sm">₹{o.totalPrice}</td>
+                    <td className="py-3 text-sm">₹{o.priceSummary?.total}</td>
                     <td className="py-3 text-sm">
                       <span
                         className={`px-3 py-1 rounded-full text-xs ${
-                          o.orderStatus === "Delivered"
+                          o.status === "DELIVERED"
                             ? "bg-green-100 text-green-600"
-                            : o.orderStatus === "Cancelled"
+                            : o.status === "CANCELLED"
                             ? "bg-red-100 text-red-600"
                             : "bg-orange-100 text-orange-600"
                         }`}
                       >
-                        {o.orderStatus}
+                        {o.status}
                       </span>
                     </td>
                     <td className="py-3 text-sm">
